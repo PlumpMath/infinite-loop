@@ -19,11 +19,6 @@ from player import Player
 from panda3d.bullet import BulletWorld
 from panda3d.bullet import BulletRigidBodyNode
 from panda3d.bullet import BulletDebugNode
-from panda3d.bullet import BulletTriangleMesh
-from panda3d.bullet import BulletTriangleMeshShape
-
-from panda3d.bullet import BulletRigidBodyNode
-from panda3d.bullet import BulletDebugNode
 from panda3d.bullet import BulletCapsuleShape
 from panda3d.bullet import BulletCharacterControllerNode
 from panda3d.bullet import BulletTriangleMesh
@@ -193,7 +188,7 @@ class level_1(ShowBase):
             mainmenuLoadGame.resetFrameSize()
             self.doReset()
 
-        if len(self.letters) == 4:
+        if len(self.letters) == 0:
             levelclear = OnscreenImage(image='../models/beat_level_1.png')
             levelclear.setTransparency(TransparencyAttrib.MAlpha)
 
@@ -201,6 +196,10 @@ class level_1(ShowBase):
             mainmenuLoadGame.setTransparency(1)
             mainmenuLoadGame.resetFrameSize()
             self.doReset()
+
+        # Start from beginning position if player falls off track
+        if self.player.characterNP.getZ() < -10.0:
+            self.player.backToStartPos()
 
         return task.cont
 

@@ -1,23 +1,11 @@
 from direct.showbase.InputStateGlobal import inputState
 from direct.actor.Actor import Actor
-from direct.gui.DirectGui import *
 
-from random import randint, random, uniform
-
-from panda3d.core import Mat4
-from panda3d.core import AmbientLight
-from panda3d.core import DirectionalLight
 from panda3d.core import Vec3
-from panda3d.core import Vec4
 from panda3d.core import BitMask32
-from panda3d.core import PandaNode,NodePath,TextNode
 
-from panda3d.bullet import BulletRigidBodyNode
-from panda3d.bullet import BulletDebugNode
 from panda3d.bullet import BulletCapsuleShape
 from panda3d.bullet import BulletCharacterControllerNode
-from panda3d.bullet import BulletTriangleMesh
-from panda3d.bullet import BulletTriangleMeshShape
 from panda3d.bullet import ZUp
 from direct.showbase.DirectObject import DirectObject
 
@@ -36,7 +24,6 @@ class Player(DirectObject):
 
         health = 100
         self.isNotWalking = False
-        self.isOnGround = False
 
     def processInput(self, dt):
         speed = Vec3(0, 0, 0)
@@ -95,28 +82,13 @@ class Player(DirectObject):
 
 
     def doJump(self):
-
-        if self.isOnGround is False:
-            print "IS ON GROUND IS FALSE"
-            self.character.setMaxJumpHeight(10.0)
-            self.character.setJumpSpeed(6.0)
-            self.character.doJump()
-            self.actorNP.play("jump")
-            self.actorNP.setPlayRate(0.8, "jump")
-            self.actorNP.play("land")
-            self.actorNP.setPlayRate(0.8, "land")
-            self.isOnGround = True
-        else:
-            if self.isOnGround:
-                print "IS ON GROUND IS TRUE"
-                self.actorNP.stop()
-                self.actorNP.loop("walk")
-                self.isOnGround = False
-
-                # if self.isMoving is True and self.characterNP.getZ() < 2:
-                #     print "ON THE GROUND"
-                #     print self.characterNP.getZ()
-                #     self.actorNP.play("walk")
+        self.character.setMaxJumpHeight(10.0)
+        self.character.setJumpSpeed(6.0)
+        self.character.doJump()
+        self.actorNP.play("jump")
+        self.actorNP.setPlayRate(0.8, "jump")
+        self.actorNP.play("land")
+        self.actorNP.setPlayRate(0.8, "land")
 
     def backToStartPos(self):
         self.characterNP.setPos(2, 0, 17.9983)
