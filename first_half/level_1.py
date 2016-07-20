@@ -18,12 +18,8 @@ from player import Player
 
 from panda3d.bullet import BulletWorld
 from panda3d.bullet import BulletRigidBodyNode
-from panda3d.bullet import BulletDebugNode
-from panda3d.bullet import BulletCapsuleShape
-from panda3d.bullet import BulletCharacterControllerNode
 from panda3d.bullet import BulletTriangleMesh
 from panda3d.bullet import BulletTriangleMeshShape
-from panda3d.bullet import ZUp
 
 
 # -------DISPLAY-------
@@ -244,8 +240,8 @@ class level_1(ShowBase):
         self.player.createPlayer(render, self.world)
 
         # Enemies
-        self.enemies.append(Enemy(render, self.world, 16, 23, -1))
-        self.enemies.append(Enemy(render, self.world, 19, 27, -1))
+        self.enemies.append(Enemy(render, self.world, 16, 23, -1, "Scientist"))
+        self.enemies.append(Enemy(render, self.world, 19, 27, -1, "Brawler"))
 
 
         # Music
