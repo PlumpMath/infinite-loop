@@ -8,13 +8,10 @@ from panda3d.bullet import BulletCapsuleShape
 from panda3d.bullet import BulletCharacterControllerNode
 from panda3d.bullet import ZUp
 
+enemies = []
+
 class Enemy(DirectObject):
-    def __init__(self):
-
-        self.enemies = []
-
-    # Create enemy
-    def createEnemy(self, render, world, x, y, z):
+    def __init__(self, render, world, x, y, z):
         h = 1.5
         w = 0.4
         shape = BulletCapsuleShape(w + 0.3, h - 2 * w, ZUp)
@@ -34,15 +31,15 @@ class Enemy(DirectObject):
             'runaway': '../models/lego/Scientist/Scientist-runaway.egg',})
 
         self.badActorNP.reparentTo(self.badCharacterNP)
-        self.enemies.append(self.badCharacterNP)
+        enemies.append(self.badCharacterNP)
         self.badActorNP.setScale(0.3)
         self.badActorNP.setH(180)
         self.badActorNP.setPos(0, 0, 0.5)
 
-        #badCharacterNP.setPythonTag("actorNp", badActorNP)
-        #
-        #for enemies in self.enemies:
-        #   badActorNp = enemy.getPythonTag("actorNp")
+        # Associates badActorNP with badCharacterNP
+        self.badCharacterNP.setPythonTag("badActorNP", self.badActorNP)
+        for enemy in enemies:
+            self.badActorNP = enemy.getPythonTag("badActorNP")
 
         # # Add fog to enemy location
         # colour = (0.2, 0.2, 0.2)

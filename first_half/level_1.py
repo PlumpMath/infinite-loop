@@ -64,6 +64,7 @@ class level_1(ShowBase):
         self.lettersRemaining = 5
         self.letters = []
         self.health = 100
+        self.enemies = []
 
         # Number of collectibles
         self.numObjects = addNumObj(
@@ -163,30 +164,30 @@ class level_1(ShowBase):
                 self.numObjects.setText("Find letters B R E A K to escape\nLetters Remaining: " + str(len(self.letters)))
 
     def enemyAttackDecision(self):
-        for enemy in self.enemy.enemies:
-            enemyProximity = enemy.getDistance(self.player.characterNP)
-            print enemyProximity
+        for enemy in self.enemies:
+            enemyProximity = enemy.badCharacterNP.getDistance(self.player.characterNP)
 
+            # Manually set enemy's z so it doesn't fly up to match player's z
             characterPos = self.player.characterNP.getPos()
-            characterPos.setZ(enemy.getZ())  # manually set the enemy's z so it doesn't fly up to match robot's z
+            characterPos.setZ(enemy.badCharacterNP.getZ())
 
             if enemyProximity < 20 and enemyProximity > 3:
-                enemy.lookAt(self.player.characterNP)
-                enemy.node().setLinearMovement(5, True)
+                enemy.badCharacterNP.lookAt(self.player.characterNP)
+                enemy.badCharacterNP.node().setLinearMovement(5, True)
 
-            if enemyProximity < 20 and enemyProximity > 3 and not self.enemy.badActorNP.getAnimControl("walk").isPlaying():
-                self.enemy.badActorNP.loop("walk")
+            if enemyProximity < 20 and enemyProximity > 3 and not enemy.badActorNP.getAnimControl("walk").isPlaying():
+                enemy.badActorNP.loop("walk")
 
-            if enemyProximity < 3 and not self.enemy.badActorNP.getAnimControl(
-                    "attack").isPlaying() and not self.player.actorNP.getAnimControl("damage").isPlaying():
-                self.enemy.badActorNP.stop()
-                self.enemy.badActorNP.loop("attack")
+            if enemyProximity < 3 and not enemy.badActorNP.getAnimControl("attack").isPlaying() and not \
+                    self.player.actorNP.getAnimControl("damage").isPlaying():
+                enemy.badActorNP.stop()
+                enemy.badActorNP.loop("attack")
                 self.player.actorNP.play("damage")
                 self.reduceHealth()
 
     # When robot comes in contact with enemy, health is reduced
     def reduceHealth(self):
-        self.bar["value"] -= 3
+        self.bar["value"] -= 4
 
     def update(self, task):
 
@@ -243,8 +244,9 @@ class level_1(ShowBase):
         self.player.createPlayer(render, self.world)
 
         # Enemies
-        self.enemy = Enemy()
-        self.enemy.createEnemy(render, self.world, 16, 23, -1)
+        self.enemies.append(Enemy(render, self.world, 16, 23, -1))
+        self.enemies.append(Enemy(render, self.world, 19, 27, -1))
+
 
         # Music
         backgroundMusic = loader.loadSfx('../sounds/elfman-piano-solo.ogg')
