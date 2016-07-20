@@ -180,17 +180,21 @@ class level_1(ShowBase):
             if enemyProximity < 20 and enemyProximity > 2 and not enemy.badActorNP.getAnimControl("walk").isPlaying():
                 enemy.badActorNP.loop("walk")
 
-            if enemyProximity < 2 and not enemy.badActorNP.getAnimControl("attack").isPlaying() and not \
-                    self.player.actorNP.getAnimControl("damage").isPlaying():
+            if enemyProximity < 2 and not enemy.badActorNP.getAnimControl("attack").isPlaying():
                 enemy.badActorNP.stop()
                 enemy.badActorNP.loop("attack")
+
+            if enemyProximity < 2 and not self.player.actorNP.getAnimControl("damage").isPlaying():
                 self.player.actorNP.play("damage")
+
+
+            if enemyProximity < 2:
                 self.reduceHealth()
+
 
     # When robot comes in contact with enemy, health is reduced
     def reduceHealth(self):
-        self.bar["value"] -= 4
-
+        self.bar["value"] -= 0.1
     def update(self, task):
 
         dt = globalClock.getDt()
@@ -208,10 +212,10 @@ class level_1(ShowBase):
             mainmenuTitle = OnscreenImage(image='../models/sorry.png', pos=(0, 0, 0))
             mainmenuTitle.setTransparency(TransparencyAttrib.MAlpha)
 
-            mainmenuLoadGame = DirectButton(image='../models/retry_button.png', scale=.08, relief=None)
+            mainmenuLoadGame = DirectButton(image='../models/retry_button.png', scale=.08, relief=None, command=self.doReset())
             mainmenuLoadGame.setTransparency(1)
             mainmenuLoadGame.resetFrameSize()
-            self.doReset()
+            # self.doReset()
 
         if len(self.letters) == 0:
             levelclear = OnscreenImage(image='../models/beat_level_1.png')

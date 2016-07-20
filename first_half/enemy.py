@@ -3,6 +3,7 @@ from direct.showbase.DirectObject import DirectObject
 from direct.actor.Actor import Actor
 
 from panda3d.core import BitMask32
+from panda3d.core import Fog
 
 from panda3d.bullet import BulletCapsuleShape
 from panda3d.bullet import BulletCharacterControllerNode
