@@ -44,7 +44,6 @@ class level_1(ShowBase):
 
         # Input
         self.accept('escape', self.doExit)
-        # self.accept('space', self.doJump)
 
         inputState.watchWithModifiers('forward', 'w')
         inputState.watchWithModifiers('reverse', 's')
@@ -163,6 +162,28 @@ class level_1(ShowBase):
                 self.letters.remove(letter)
                 self.numObjects.setText("Find letters B R E A K to escape\nLetters Remaining: " + str(len(self.letters)))
 
+    def enemyAttackDecision(self):
+        for enemy in self.enemy.enemies:
+            enemyProximity = enemy.getDistance(self.player.characterNP)
+            print enemyProximity
+
+            characterPos = self.player.characterNP.getPos()
+            characterPos.setZ(enemy.getZ())  # manually set the enemy's z so it doesn't fly up to match robot's z
+
+            if enemyProximity < 20 and enemyProximity > 3:
+                enemy.lookAt(self.player.characterNP)
+                enemy.node().setLinearMovement(5, True)
+
+            if enemyProximity < 20 and enemyProximity > 3 and not self.enemy.badActorNP.getAnimControl("walk").isPlaying():
+                self.enemy.badActorNP.loop("walk")
+
+            if enemyProximity < 3 and not self.enemy.badActorNP.getAnimControl(
+                    "attack").isPlaying() and not self.player.actorNP.getAnimControl("damage").isPlaying():
+                self.enemy.badActorNP.stop()
+                self.enemy.badActorNP.loop("attack")
+                self.player.actorNP.play("damage")
+                self.reduceHealth()
+
     # When robot comes in contact with enemy, health is reduced
     def reduceHealth(self):
         self.bar["value"] -= 3
@@ -173,6 +194,7 @@ class level_1(ShowBase):
         self.player.processInput(dt)
         self.world.doPhysics(dt, 4, 1./240.)
 
+        # Camera follows player
         self.player.cameraFollow(self.floater)
 
         # Identifying player collecting items
@@ -201,6 +223,9 @@ class level_1(ShowBase):
         if self.player.characterNP.getZ() < -10.0:
             self.player.backToStartPos()
 
+        # If player gets too close to enemy, enemy attacks
+        self.enemyAttackDecision()
+
         return task.cont
 
     def cleanup(self):
@@ -216,6 +241,10 @@ class level_1(ShowBase):
         # Main Character
         self.player = Player()
         self.player.createPlayer(render, self.world)
+
+        # Enemies
+        self.enemy = Enemy()
+        self.enemy.createEnemy(render, self.world, 16, 23, -1)
 
         # Music
         backgroundMusic = loader.loadSfx('../sounds/elfman-piano-solo.ogg')
@@ -287,12 +316,6 @@ class level_1(ShowBase):
         self.letterK = '../models/letters/letter_k.egg'
         self.createLetter(self.letterK, 10, 722, 0)
 
-
-
-        # Create scientist enemy
-        # enemy2 = Enemy(self.render, 16, 23, -1)
-
-
         # Create complex mesh for Track using BulletTriangleMeshShape
         mesh = BulletTriangleMesh()
         self.track = loader.loadModel("../models/mountain_valley_track.egg")
@@ -312,8 +335,7 @@ class level_1(ShowBase):
         self.world.attachRigidBody(tracknn.node())
         tracknn.setPos(27, -5, -2)
         self.track.reparentTo(tracknn)
-        debugNode = BulletDebugNode("Debug")
-        debugNode.showWireframe(True)
+
 
 game = level_1()
 game.run()
