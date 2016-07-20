@@ -6,13 +6,6 @@ from direct.actor.Actor import Actor
 from direct.gui.DirectGui import *
 from direct.gui.OnscreenImage import OnscreenImage
 from panda3d.core import TransparencyAttrib
-
-from direct.interval.IntervalGlobal import *
-
-
-
-from random import randint, random, uniform
-
 from panda3d.core import Mat4
 from panda3d.core import AmbientLight
 from panda3d.core import DirectionalLight
