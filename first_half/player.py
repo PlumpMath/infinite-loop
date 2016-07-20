@@ -12,7 +12,6 @@ from panda3d.core import Vec4
 from panda3d.core import BitMask32
 from panda3d.core import PandaNode,NodePath,TextNode
 
-from panda3d.bullet import BulletWorld
 from panda3d.bullet import BulletRigidBodyNode
 from panda3d.bullet import BulletDebugNode
 from panda3d.bullet import BulletCapsuleShape
@@ -25,7 +24,7 @@ from direct.showbase.DirectObject import DirectObject
 
 class Player(DirectObject):
 
-    def __init__(self, render, world):
+    def __init__(self):
 
         # Input
         self.accept('space', self.doJump)
@@ -35,16 +34,38 @@ class Player(DirectObject):
         inputState.watchWithModifiers('turnLeft', 'a')
         inputState.watchWithModifiers('turnRight', 'd')
 
-        self.world = world
-        self.scene = []
-        self.health = 100
-        self.isMoving = False
+        health = 100
+        self.isNotWalking = False
+        self.isOnGround = False
 
+    def processInput(self, dt):
+        speed = Vec3(0, 0, 0)
+        omega = 0.0
 
-        self.createPlayer(render, self.world)
+        # Change speed of robot
+        if inputState.isSet('forward'): speed.setY(10.0)
+        if inputState.isSet('reverse'): speed.setY(-4.0)
+        if inputState.isSet('left'):    speed.setX(-3.0)
+        if inputState.isSet('right'):   speed.setX(3.0)
+        if inputState.isSet('turnLeft'):  omega = 120.0
+        if inputState.isSet('turnRight'): omega = -120.0
+
+        if inputState.isSet('forward') or inputState.isSet('reverse') or inputState.isSet('left') or \
+                inputState.isSet('right'):
+            if self.isNotWalking is False:
+                self.actorNP.loop("walk")
+                self.isNotWalking = True
+
+        else:
+            if self.isNotWalking:
+                self.actorNP.stop()
+                self.actorNP.loop("idle")
+                self.isNotWalking = False
+
+        self.character.setAngularMovement(omega)
+        self.character.setLinearMovement(speed, True)
 
     def createPlayer(self, render, world):
-        # Main Character
         h = 3.38
         w = 0.4
         shape = BulletCapsuleShape(w + 0.3, h - 2 * w, ZUp)
@@ -71,35 +92,7 @@ class Player(DirectObject):
         self.actorNP.setH(180)
         self.actorNP.setPos(0, 0, 0)
 
-    def processInput(self, dt):
-        speed = Vec3(0, 0, 0)
-        omega = 0.0
 
-        # Change speed of robot
-        if inputState.isSet('forward'): speed.setY(10.0)
-        if inputState.isSet('reverse'): speed.setY(-4.0)
-        if inputState.isSet('left'):    speed.setX(-3.0)
-        if inputState.isSet('right'):   speed.setX(3.0)
-        if inputState.isSet('turnLeft'):  omega = 120.0
-        if inputState.isSet('turnRight'): omega = -120.0
-
-        if inputState.isSet('forward') or inputState.isSet('reverse') or inputState.isSet('left') or inputState.isSet(
-                'right'):
-            if self.isMoving is False:
-                self.actorNP.loop("walk")
-                if inputState.isSet('space'):
-                    print "space pressed while walking"
-                self.isMoving = True
-                # print self.characterNP.getZ()
-
-        else:
-            if self.isMoving:
-                self.actorNP.stop()
-                self.actorNP.loop("idle")
-                self.isMoving = False
-
-        self.character.setAngularMovement(omega)
-        self.character.setLinearMovement(speed, True)
 
     def doJump(self):
 
@@ -127,3 +120,21 @@ class Player(DirectObject):
 
     def backToStartPos(self):
         self.characterNP.setPos(2, 0, 17.9983)
+
+    def cameraFollow(self, floater):
+        # If the camera is too far from robot, move it closer.
+        # If the camera is too close to robot, move it farther.
+        camvec = self.characterNP.getPos() - base.camera.getPos()
+        camvec.setZ(0)
+        camdist = camvec.length()
+        camvec.normalize()
+        if (camdist > 20.0):
+            base.camera.setPos(base.camera.getPos() + camvec * (camdist - 20))
+            camdist = 20.0
+        if (camdist < 10.0):
+            base.camera.setPos(base.camera.getPos() - camvec * (10 - camdist))
+            camdist = 10.0
+
+        floater.setPos(self.characterNP.getPos())
+        floater.setZ(self.characterNP.getZ() + 2.0)
+        base.camera.lookAt(floater)
