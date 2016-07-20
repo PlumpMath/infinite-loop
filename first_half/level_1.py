@@ -167,14 +167,20 @@ class level_1(ShowBase):
             characterPos = self.player.characterNP.getPos()
             characterPos.setZ(enemy.badCharacterNP.getZ())
 
-            if enemyProximity < 20 and enemyProximity > 3:
-                enemy.badCharacterNP.lookAt(self.player.characterNP)
-                enemy.badCharacterNP.node().setLinearMovement(5, True)
+            # Create direct path from enemy to player
+            enemyPos = enemy.badCharacterNP.getPos()
+            vec = characterPos - enemyPos
+            vec.normalize()
+            enemymovement = vec * 0.15 + enemyPos
 
-            if enemyProximity < 20 and enemyProximity > 3 and not enemy.badActorNP.getAnimControl("walk").isPlaying():
+            if enemyProximity < 20 and enemyProximity > 2:
+                enemy.badCharacterNP.lookAt(self.player.characterNP)
+                enemy.badCharacterNP.setPos(enemymovement)
+
+            if enemyProximity < 20 and enemyProximity > 2 and not enemy.badActorNP.getAnimControl("walk").isPlaying():
                 enemy.badActorNP.loop("walk")
 
-            if enemyProximity < 3 and not enemy.badActorNP.getAnimControl("attack").isPlaying() and not \
+            if enemyProximity < 2 and not enemy.badActorNP.getAnimControl("attack").isPlaying() and not \
                     self.player.actorNP.getAnimControl("damage").isPlaying():
                 enemy.badActorNP.stop()
                 enemy.badActorNP.loop("attack")
