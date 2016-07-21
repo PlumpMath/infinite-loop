@@ -61,6 +61,7 @@ class level_1(ShowBase):
         self.letters = []
         self.health = 100
         self.enemies = []
+        self.isTakingDamage = False
 
         # Number of collectibles
         self.numObjects = addNumObj(
@@ -100,13 +101,22 @@ class level_1(ShowBase):
         self.floater.reparentTo(render)
 
     def doExit(self):
-        self.cleanup()
+        render.getChildren().detach()
         sys.exit(1)
 
-    def doReset(self):
-        print "do reset called"
-        self.cleanup()
+    def doRestart(self):
+        # self.player.backToStartPos()
+        # self.bar["value"] = 100
+        # self.lettersRemaining = 5
+        # self.letters = []
+        # self.health = 100
+        # self.enemies = []
+        # # self.lettersRemaining = 5
+        render.getChildren().detach()
         self.setup()
+
+    def levelCleared(self):
+        print "create menu for level cleared"
 
     def createPlatform(self, x, y, z):
         self.platform = loader.loadModel('../models/disk/disk.egg')
@@ -188,6 +198,13 @@ class level_1(ShowBase):
 
             if enemyProximity < 2 and not self.player.actorNP.getAnimControl("damage").isPlaying():
                 self.player.actorNP.play("damage")
+                self.isTakingDamage = True
+
+            if self.player.character.isOnGround() and self.isTakingDamage:
+                if self.player.isNotWalking and not self.player.actorNP.getAnimControl("walk").isPlaying():
+                    self.player.actorNP.stop("damage")
+                    self.player.actorNP.loop("walk")
+                    self.player.isTakingDamage = False
 
 
             if enemyProximity < 2:
@@ -197,14 +214,20 @@ class level_1(ShowBase):
     def reduceHealth(self):
         self.bar["value"] -= 0.1
 
+    # Menus for winning/losing conditions
     def healthTask(self, task):
         if self.bar["value"] < 1:
-            b= DirectButton(image='../models/retry_button.png', scale=.08, relief=None, command=self.doReset)
+            mainmenuTitle = OnscreenImage(image='../models/sorry.png', pos=(0, 0, 0))
+            mainmenuTitle.setTransparency(TransparencyAttrib.MAlpha)
+
+            b = DirectButton(image='../models/retry_button.png', scale=.08, relief=None, command=self.doRestart)
+            b.setTransparency(1)
+            b.resetFrameSize()
+
             return task.done
         return task.cont
 
     def update(self, task):
-
         dt = globalClock.getDt()
         self.player.processInput(dt)
         self.world.doPhysics(dt, 4, 1./240.)
@@ -215,19 +238,6 @@ class level_1(ShowBase):
         # Identifying player collecting items
         self.collectLetters()
 
-        # Menus for winning/losing conditions
-        # if self.bar["value"] < 1:
-            # mainmenuTitle = OnscreenImage(image='../models/sorry.png', pos=(0, 0, 0))
-            # mainmenuTitle.setTransparency(TransparencyAttrib.MAlpha)
-
-            # mainmenuLoadGame = DirectButton(image='../models/retry_button.png', scale=.08, relief=None)
-            # b = DirectButton(text=("OK", "click!", "rolling over", "disabled"), scale=.05, pos=(-0.4,0,0), command=self.doReset)
-
-            # mainmenuLoadGame.setTransparency(1)
-            # mainmenuLoadGame.resetFrameSize()
-            # self.doReset()
-            # print "whateve"
-
         if len(self.letters) == 0:
             levelclear = OnscreenImage(image='../models/beat_level_1.png')
             levelclear.setTransparency(TransparencyAttrib.MAlpha)
@@ -235,7 +245,7 @@ class level_1(ShowBase):
             mainmenuLoadGame = DirectButton(image='../models/retry_button.png', scale=.08, relief=None)
             mainmenuLoadGame.setTransparency(1)
             mainmenuLoadGame.resetFrameSize()
-            self.doReset()
+            self.levelCleared()
 
         # Start from beginning position if player falls off track
         if self.player.characterNP.getZ() < -10.0:
@@ -246,12 +256,7 @@ class level_1(ShowBase):
 
         return task.cont
 
-    def cleanup(self):
-        render.getChildren().detach()
-        self.world = None
-
     def setup(self):
-
         # Physics World
         self.world = BulletWorld()
         self.world.setGravity(Vec3(0, 0, -9.81))

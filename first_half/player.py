@@ -51,7 +51,6 @@ class Player(DirectObject):
                 self.isNotWalking = False
 
         if self.character.isOnGround() and self.isJumping:
-            print "reaches"
             if self.isNotWalking:
                 self.actorNP.stop("jump")
                 self.actorNP.loop("walk")
@@ -86,8 +85,6 @@ class Player(DirectObject):
         self.actorNP.setScale(0.15)
         self.actorNP.setH(180)
         self.actorNP.setPos(0, 0, 0)
-
-
 
     def doJump(self):
         self.isJumping = True
