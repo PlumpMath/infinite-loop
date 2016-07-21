@@ -24,6 +24,7 @@ class Player(DirectObject):
 
         health = 100
         self.isNotWalking = False
+        self.isJumping = False
 
     def processInput(self, dt):
         speed = Vec3(0, 0, 0)
@@ -48,6 +49,13 @@ class Player(DirectObject):
                 self.actorNP.stop()
                 self.actorNP.loop("idle")
                 self.isNotWalking = False
+
+        if self.character.isOnGround() and self.isJumping:
+            print "reaches"
+            if self.isNotWalking:
+                self.actorNP.stop("jump")
+                self.actorNP.loop("walk")
+                self.isJumping = False
 
         self.character.setAngularMovement(omega)
         self.character.setLinearMovement(speed, True)
@@ -82,13 +90,14 @@ class Player(DirectObject):
 
 
     def doJump(self):
+        self.isJumping = True
         self.character.setMaxJumpHeight(10.0)
         self.character.setJumpSpeed(6.0)
         self.character.doJump()
         self.actorNP.play("jump")
         self.actorNP.setPlayRate(0.8, "jump")
-        self.actorNP.play("land")
-        self.actorNP.setPlayRate(0.8, "land")
+        # self.actorNP.play("land")
+        # self.actorNP.setPlayRate(0.8, "land")
 
     def backToStartPos(self):
         self.characterNP.setPos(2, 0, 17.9983)

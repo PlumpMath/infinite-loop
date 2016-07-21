@@ -93,6 +93,7 @@ class level_1(ShowBase):
 
         # Add update task to task manager
         taskMgr.add(self.update, 'updateWorld')
+        taskMgr.add(self.healthTask, 'healthTask')
 
         # Create a floater object
         self.floater = NodePath(PandaNode("floater"))
@@ -103,6 +104,7 @@ class level_1(ShowBase):
         sys.exit(1)
 
     def doReset(self):
+        print "do reset called"
         self.cleanup()
         self.setup()
 
@@ -191,10 +193,16 @@ class level_1(ShowBase):
             if enemyProximity < 2:
                 self.reduceHealth()
 
-
     # When robot comes in contact with enemy, health is reduced
     def reduceHealth(self):
         self.bar["value"] -= 0.1
+
+    def healthTask(self, task):
+        if self.bar["value"] < 1:
+            b= DirectButton(image='../models/retry_button.png', scale=.08, relief=None, command=self.doReset)
+            return task.done
+        return task.cont
+
     def update(self, task):
 
         dt = globalClock.getDt()
@@ -208,14 +216,17 @@ class level_1(ShowBase):
         self.collectLetters()
 
         # Menus for winning/losing conditions
-        if self.bar["value"] < 1:
-            mainmenuTitle = OnscreenImage(image='../models/sorry.png', pos=(0, 0, 0))
-            mainmenuTitle.setTransparency(TransparencyAttrib.MAlpha)
+        # if self.bar["value"] < 1:
+            # mainmenuTitle = OnscreenImage(image='../models/sorry.png', pos=(0, 0, 0))
+            # mainmenuTitle.setTransparency(TransparencyAttrib.MAlpha)
 
-            mainmenuLoadGame = DirectButton(image='../models/retry_button.png', scale=.08, relief=None, command=self.doReset())
-            mainmenuLoadGame.setTransparency(1)
-            mainmenuLoadGame.resetFrameSize()
+            # mainmenuLoadGame = DirectButton(image='../models/retry_button.png', scale=.08, relief=None)
+            # b = DirectButton(text=("OK", "click!", "rolling over", "disabled"), scale=.05, pos=(-0.4,0,0), command=self.doReset)
+
+            # mainmenuLoadGame.setTransparency(1)
+            # mainmenuLoadGame.resetFrameSize()
             # self.doReset()
+            # print "whateve"
 
         if len(self.letters) == 0:
             levelclear = OnscreenImage(image='../models/beat_level_1.png')
