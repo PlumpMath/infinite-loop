@@ -15,6 +15,7 @@ from panda3d.core import Fog
 
 from enemy import Enemy
 from player import Player
+from mainMenu import MainMenu
 
 from panda3d.bullet import BulletWorld
 from panda3d.bullet import BulletRigidBodyNode
@@ -23,6 +24,11 @@ from panda3d.bullet import BulletTriangleMeshShape
 
 
 # -------DISPLAY-------
+
+# menu = MainMenu()
+# menu.frame.show()
+
+
 # Display instructions for player, title of game, and number of items left to collect
 def addInstructions(pos, msg):
     return OnscreenText(text=msg, style=1, fg=(1,1,1,1), pos=(-1.3, pos), align=TextNode.ALeft, scale = .05)
@@ -62,6 +68,7 @@ class level_1(ShowBase):
         self.health = 100
         self.enemies = []
         self.isTakingDamage = False
+        self.intro = True
 
         # Number of collectibles
         self.numObjects = addNumObj(
@@ -95,6 +102,8 @@ class level_1(ShowBase):
         # Add update task to task manager
         taskMgr.add(self.update, 'updateWorld')
         taskMgr.add(self.healthTask, 'healthTask')
+        taskMgr.add(self.startMenu, 'startMenu')
+
 
         # Create a floater object
         self.floater = NodePath(PandaNode("floater"))
@@ -114,9 +123,6 @@ class level_1(ShowBase):
         # # self.lettersRemaining = 5
         render.getChildren().detach()
         self.setup()
-
-    def levelCleared(self):
-        print "create menu for level cleared"
 
     def createPlatform(self, x, y, z):
         self.platform = loader.loadModel('../models/disk/disk.egg')
@@ -227,6 +233,31 @@ class level_1(ShowBase):
             return task.done
         return task.cont
 
+    # Load main menu
+    def startMenu(self, task):
+        if self.intro:
+            self.mainMenuBackground = OnscreenImage(image='../models/main-menu-background.png', pos=(0, 0, 0), scale=(1.4, 1, 1))
+            Button_level1 = DirectButton(text="LEVEL 1", scale=.1, pos=(-0.2, -0.2, -0.65))
+            Button_level2 = DirectButton(text="LEVEL 2", scale=.1, pos=(0.23, -0.2, -0.65))
+            Button_start = DirectButton(text="START", scale=.1, pos=(0.65, -0.2, -0.65), command=self.toggleIntro)
+            Button_quit = DirectButton(text="QUIT", scale=.1, pos=(1, -0.2, -0.65), command=self.doExit)
+
+            # Redetermine size or else buttons may not be clickable
+            self.buttons = [Button_level1, Button_level2, Button_start, Button_quit]
+            for b in self.buttons:
+                b.setTransparency(1)
+                b.resetFrameSize()
+
+            return task.done
+        return task.cont
+
+    def toggleIntro(self):
+        print "pressed start"
+        self.intro = False
+        self.mainMenuBackground.destroy()
+        for b in self.buttons:
+            b.destroy()
+
     def update(self, task):
         dt = globalClock.getDt()
         self.player.processInput(dt)
@@ -245,7 +276,6 @@ class level_1(ShowBase):
             mainmenuLoadGame = DirectButton(image='../models/retry_button.png', scale=.08, relief=None)
             mainmenuLoadGame.setTransparency(1)
             mainmenuLoadGame.resetFrameSize()
-            self.levelCleared()
 
         # Start from beginning position if player falls off track
         if self.player.characterNP.getZ() < -10.0:
@@ -273,8 +303,9 @@ class level_1(ShowBase):
         # Music
         backgroundMusic = loader.loadSfx('../sounds/elfman-piano-solo.ogg')
         backgroundMusic.setLoop(True)
-        backgroundMusic.play()
-        # backgroundMusic.setVolume(4.0)  # will need to lower this when I add sound effects
+        if self.intro == False:
+            backgroundMusic.play()
+            # backgroundMusic.setVolume(4.0)  # will need to lower this when I add sound effects
 
         # Skybox
         self.skybox = loader.loadModel('../models/skybox.egg')
