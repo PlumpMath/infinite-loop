@@ -114,15 +114,23 @@ class level_1(ShowBase):
         sys.exit(1)
 
     def doRestart(self):
-        # self.player.backToStartPos()
-        # self.bar["value"] = 100
+        print "pressed start"
+        # Destroy menu
+        self.intro = False
+        self.mainMenuBackground.destroy()
+        for b in self.buttons:
+            b.destroy()
+
+        # Set player back to starting state
+        self.player.backToStartPos()
+        self.bar["value"] = 100
+        self.health = 100
+
         # self.lettersRemaining = 5
         # self.letters = []
-        # self.health = 100
         # self.enemies = []
-        # # self.lettersRemaining = 5
-        render.getChildren().detach()
-        self.setup()
+        # render.getChildren().detach()
+        # self.setup()
 
     def createPlatform(self, x, y, z):
         self.platform = loader.loadModel('../models/disk/disk.egg')
@@ -239,7 +247,7 @@ class level_1(ShowBase):
             self.mainMenuBackground = OnscreenImage(image='../models/main-menu-background.png', pos=(0, 0, 0), scale=(1.4, 1, 1))
             Button_level1 = DirectButton(text="LEVEL 1", scale=.1, pos=(-0.2, -0.2, -0.65))
             Button_level2 = DirectButton(text="LEVEL 2", scale=.1, pos=(0.23, -0.2, -0.65))
-            Button_start = DirectButton(text="START", scale=.1, pos=(0.65, -0.2, -0.65), command=self.toggleIntro)
+            Button_start = DirectButton(text="START", scale=.1, pos=(0.65, -0.2, -0.65), command=self.doRestart)
             Button_quit = DirectButton(text="QUIT", scale=.1, pos=(1, -0.2, -0.65), command=self.doExit)
 
             # Redetermine size or else buttons may not be clickable
@@ -250,13 +258,6 @@ class level_1(ShowBase):
 
             return task.done
         return task.cont
-
-    def toggleIntro(self):
-        print "pressed start"
-        self.intro = False
-        self.mainMenuBackground.destroy()
-        for b in self.buttons:
-            b.destroy()
 
     def update(self, task):
         dt = globalClock.getDt()
