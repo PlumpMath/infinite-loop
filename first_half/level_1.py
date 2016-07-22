@@ -65,6 +65,7 @@ class level_1(ShowBase):
         # Game state variables
         self.lettersRemaining = 5
         self.letters = []
+        self.collectedLetters = []
         self.health = 100
         self.enemies = []
         self.isTakingDamage = False
@@ -114,7 +115,6 @@ class level_1(ShowBase):
         sys.exit(1)
 
     def doRestart(self):
-        print "pressed start"
         # Destroy menu
         self.intro = False
         self.mainMenuBackground.destroy()
@@ -126,11 +126,19 @@ class level_1(ShowBase):
         self.bar["value"] = 100
         self.health = 100
 
-        # self.lettersRemaining = 5
-        # self.letters = []
-        # self.enemies = []
-        # render.getChildren().detach()
-        # self.setup()
+        # Set enemies back to starting state
+        for enemy in self.enemies:
+            enemy.backToStartPos()
+
+        # Set collectibles back to starting state
+        for l in self.letters:
+            l.removeAllChildren()
+            self.world.remove(l)
+        self.letters[:] = []
+        self.collectedLetters[:] = []
+        self.createSetOfLetters()
+
+        self.numObjects.setText("Find letters B R E A K to escape\nLetters Remaining: " + str(len(self.letters)))
 
     def createPlatform(self, x, y, z):
         self.platform = loader.loadModel('../models/disk/disk.egg')
@@ -151,7 +159,8 @@ class level_1(ShowBase):
         self.world.attachRigidBody(node)
         self.platform.reparentTo(platformnn)
 
-    def createLetter(self, loadFile, x, y, z):
+    def createLetter(self, loadFile, name, x, y, z):
+        self.name = name
         self.letter = loader.loadModel(loadFile)
         geomnodes = self.letter.findAllMatches('**/+GeomNode')
         gn = geomnodes.getPath(0).node()
@@ -160,17 +169,17 @@ class level_1(ShowBase):
         mesh.addGeom(geom)
         shape = BulletTriangleMeshShape(mesh, dynamic=False)
 
-        node = BulletRigidBodyNode('Letter')
-        node.setMass(0)
-        node.addShape(shape)
+        self.letterNode = BulletRigidBodyNode('Letter')
+        self.letterNode.setMass(0)
+        self.letterNode.addShape(shape)
 
-        self.letters.append(node)
-        letternn = render.attachNewNode(node)
+        self.letters.append(self.letterNode)
+        letternn = render.attachNewNode(self.letterNode)
         letternn.setPos(x, y, z)
         letternn.setScale(1)
         letternn.setP(90) # orients the mesh for the letters to be upright
 
-        self.world.attachRigidBody(node)
+        self.world.attachRigidBody(self.letterNode)
         self.letter.reparentTo(letternn)
 
         self.letter.setP(-90) # orients the actual letter objects to be upright
@@ -183,7 +192,16 @@ class level_1(ShowBase):
                 letter.removeAllChildren()
                 self.world.remove(letter)
                 self.letters.remove(letter)
+                self.collectedLetters.append(letter)
                 self.numObjects.setText("Find letters B R E A K to escape\nLetters Remaining: " + str(len(self.letters)))
+
+    def clearRemainingLetters(self):
+        print "how many in remainingLetters: ", len(self.letters)
+        letter.removeAllChildren()
+        self.world.remove(letter)
+        self.letters.remove(letter)
+        print len(self.letters)
+
 
     def enemyAttackDecision(self):
         for enemy in self.enemies:
@@ -259,6 +277,27 @@ class level_1(ShowBase):
             return task.done
         return task.cont
 
+    def createEnemies(self):
+        self.enemies.append(Enemy(render, self.world, 16, 23, -1, "Scientist"))
+        self.enemies.append(Enemy(render, self.world, 19, 27, -1, "Brawler"))
+
+    def createSetOfLetters(self):
+        self.letterB = '../models/letters/letter_b.egg'
+        self.createLetter(self.letterB, "B", 72, 70.2927, 0)
+
+        self.letterR = '../models/letters/letter_r.egg'
+        self.createLetter(self.letterR, "R", 231, 227.5, 2)
+
+        self.letterE = '../models/letters/letter_e.egg'
+        self.createLetter(self.letterE, "E", 340, 471, 3.1)
+
+        self.letterA = '../models/letters/letter_a.egg'
+        self.createLetter(self.letterA, "A", 335, 483, 6)
+
+        self.letterK = '../models/letters/letter_k.egg'
+        self.createLetter(self.letterK, "K", 10, 722, 0)
+
+
     def update(self, task):
         dt = globalClock.getDt()
         self.player.processInput(dt)
@@ -270,7 +309,7 @@ class level_1(ShowBase):
         # Identifying player collecting items
         self.collectLetters()
 
-        if len(self.letters) == 0:
+        if len(self.letters) == 0 and len(self.collectedLetters) > 4:
             levelclear = OnscreenImage(image='../models/beat_level_1.png')
             levelclear.setTransparency(TransparencyAttrib.MAlpha)
 
@@ -297,9 +336,9 @@ class level_1(ShowBase):
         self.player.createPlayer(render, self.world)
 
         # Enemies
-        self.enemies.append(Enemy(render, self.world, 16, 23, -1, "Scientist"))
-        self.enemies.append(Enemy(render, self.world, 19, 27, -1, "Brawler"))
-
+        if self.enemies > 0:
+            del self.enemies[:]
+        self.createEnemies()
 
         # Music
         backgroundMusic = loader.loadSfx('../sounds/elfman-piano-solo.ogg')
@@ -357,20 +396,7 @@ class level_1(ShowBase):
 
 
         # Create letters for robot to collect
-        self.letterB = '../models/letters/letter_b.egg'
-        self.createLetter(self.letterB, 72, 70.2927, 0)
-
-        self.letterR = '../models/letters/letter_r.egg'
-        self.createLetter(self.letterR, 231, 227.5, 2)
-
-        self.letterE = '../models/letters/letter_e.egg'
-        self.createLetter(self.letterE, 340, 471, 3.1)
-
-        self.letterA = '../models/letters/letter_a.egg'
-        self.createLetter(self.letterA, 335, 483, 6)
-
-        self.letterK = '../models/letters/letter_k.egg'
-        self.createLetter(self.letterK, 10, 722, 0)
+        self.createSetOfLetters()
 
         # Create complex mesh for Track using BulletTriangleMeshShape
         mesh = BulletTriangleMesh()
