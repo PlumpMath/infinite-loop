@@ -69,7 +69,8 @@ class level_1(ShowBase):
         self.health = 100
         self.enemies = []
         self.isTakingDamage = False
-        self.intro = True
+        self.menuOn = True
+        self.worldCondition = False
 
         # Number of collectibles
         self.numObjects = addNumObj(
@@ -102,9 +103,8 @@ class level_1(ShowBase):
 
         # Add update task to task manager
         taskMgr.add(self.update, 'updateWorld')
-        taskMgr.add(self.healthTask, 'healthTask')
+        taskMgr.add(self.updateWinLose, 'winLose')
         taskMgr.add(self.startMenu, 'startMenu')
-
 
         # Create a floater object
         self.floater = NodePath(PandaNode("floater"))
@@ -115,11 +115,19 @@ class level_1(ShowBase):
         sys.exit(1)
 
     def doRestart(self):
-        # Destroy menu
-        self.intro = False
-        self.mainMenuBackground.destroy()
+
+        # #Destroy images/text
+        # if self.menuOn == False:
+        #     self.mainMenuTitle.destroy()
+
+        self.menuOn = False
+        self.worldCondition = True
+        print "does worldcondition get printed at start of each game?"
+
+        # Hide menu
+        self.mainMenuBackground.hide()
         for b in self.buttons:
-            b.destroy()
+            b.hide()
 
         # Set player back to starting state
         self.player.backToStartPos()
@@ -246,22 +254,35 @@ class level_1(ShowBase):
     def reduceHealth(self):
         self.bar["value"] -= 0.1
 
-    # Menus for winning/losing conditions
-    def healthTask(self, task):
-        if self.bar["value"] < 1:
-            mainmenuTitle = OnscreenImage(image='../models/sorry.png', pos=(0, 0, 0))
-            mainmenuTitle.setTransparency(TransparencyAttrib.MAlpha)
+    # Menus for losing conditions
+    def updateWinLose(self, task):
+        if (self.bar["value"] < 1 or (len(self.letters) == 4 and len(self.collectedLetters) > 0))and self.worldCondition:
+            # self.mainMenuTitle = OnscreenImage(image='../models/sorry.png', pos=(0, 0, 0))
+            # self.mainMenuTitle.setTransparency(TransparencyAttrib.MAlpha)
+            #
+            # b = DirectButton(image='../models/retry_button.png', scale=.08, relief=None, command=self.doRestart)
+            # b.setTransparency(1)
+            # b.resetFrameSize()
+            self.worldCondition = False
 
-            b = DirectButton(image='../models/retry_button.png', scale=.08, relief=None, command=self.doRestart)
-            b.setTransparency(1)
-            b.resetFrameSize()
+            self.mainMenuBackground = OnscreenImage(image='../models/main-menu-background.png', pos=(0, 0, 0),
+                                                    scale=(1.4, 1, 1))
+            Button_level1 = DirectButton(text="LEVEL 1", scale=.1, pos=(-0.2, -0.2, -0.65))
+            Button_level2 = DirectButton(text="LEVEL 2", scale=.1, pos=(0.23, -0.2, -0.65))
+            Button_start = DirectButton(text="START", scale=.1, pos=(0.65, -0.2, -0.65), command=self.doRestart)
+            Button_quit = DirectButton(text="QUIT", scale=.1, pos=(1, -0.2, -0.65), command=self.doExit)
 
-            return task.done
+            # Redetermine size or else buttons may not be clickable
+            self.buttons = [Button_level1, Button_level2, Button_start, Button_quit]
+            for b in self.buttons:
+                b.setTransparency(1)
+                b.resetFrameSize()
+
         return task.cont
 
     # Load main menu
     def startMenu(self, task):
-        if self.intro:
+        if self.menuOn:
             self.mainMenuBackground = OnscreenImage(image='../models/main-menu-background.png', pos=(0, 0, 0), scale=(1.4, 1, 1))
             Button_level1 = DirectButton(text="LEVEL 1", scale=.1, pos=(-0.2, -0.2, -0.65))
             Button_level2 = DirectButton(text="LEVEL 2", scale=.1, pos=(0.23, -0.2, -0.65))
@@ -309,14 +330,6 @@ class level_1(ShowBase):
         # Identifying player collecting items
         self.collectLetters()
 
-        if len(self.letters) == 0 and len(self.collectedLetters) > 4:
-            levelclear = OnscreenImage(image='../models/beat_level_1.png')
-            levelclear.setTransparency(TransparencyAttrib.MAlpha)
-
-            mainmenuLoadGame = DirectButton(image='../models/retry_button.png', scale=.08, relief=None)
-            mainmenuLoadGame.setTransparency(1)
-            mainmenuLoadGame.resetFrameSize()
-
         # Start from beginning position if player falls off track
         if self.player.characterNP.getZ() < -10.0:
             self.player.backToStartPos()
@@ -343,7 +356,7 @@ class level_1(ShowBase):
         # Music
         backgroundMusic = loader.loadSfx('../sounds/elfman-piano-solo.ogg')
         backgroundMusic.setLoop(True)
-        if self.intro == False:
+        if self.menuOn == False:
             backgroundMusic.play()
             # backgroundMusic.setVolume(4.0)  # will need to lower this when I add sound effects
 
@@ -393,7 +406,6 @@ class level_1(ShowBase):
         self.createPlatform(10, 75, -1)
         self.createPlatform(27, 722, -1)
         self.createPlatform(-7, 722, -1)
-
 
         # Create letters for robot to collect
         self.createSetOfLetters()
