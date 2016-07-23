@@ -20,6 +20,8 @@ from panda3d.bullet import BulletWorld
 from panda3d.bullet import BulletRigidBodyNode
 from panda3d.bullet import BulletTriangleMesh
 from panda3d.bullet import BulletTriangleMeshShape
+from panda3d.bullet import BulletDebugNode
+
 
 
 # -------DISPLAY-------
@@ -45,6 +47,8 @@ class level_1(ShowBase):
 
         # Input
         self.accept('escape', self.doExit)
+        self.accept('f3', self.toggleDebug)
+
 
         inputState.watchWithModifiers('forward', 'w')
         inputState.watchWithModifiers('reverse', 's')
@@ -108,6 +112,12 @@ class level_1(ShowBase):
         # Create a floater object
         self.floater = NodePath(PandaNode("floater"))
         self.floater.reparentTo(render)
+
+    def toggleDebug(self):
+        if self.debugNP.isHidden():
+            self.debugNP.show()
+        else:
+            self.debugNP.hide()
 
     def doExit(self):
         render.getChildren().detach()
@@ -342,6 +352,13 @@ class level_1(ShowBase):
 
 
     def update(self, task):
+
+        # if base.mouseWatcherNode.hasMouse():
+        #     x = base.mouseWatcherNode.getMouseX()
+        #     print ("mouse X: ", x)
+        #     y = base.mouseWatcherNode.getMouseY()
+        #     print ("mouse Y: ", y)
+
         dt = globalClock.getDt()
         self.player.processInput(dt)
         self.world.doPhysics(dt, 4, 1./240.)
@@ -362,9 +379,15 @@ class level_1(ShowBase):
         return task.cont
 
     def setup(self):
+
+        self.debugNP = self.render.attachNewNode(BulletDebugNode('Debug'))
+        self.debugNP.show()
+
         # Physics World
         self.world = BulletWorld()
         self.world.setGravity(Vec3(0, 0, -9.81))
+        self.world.setDebugNode(self.debugNP.node())
+
 
         # Main Character
         self.player = Player()
