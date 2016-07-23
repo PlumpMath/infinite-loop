@@ -203,15 +203,15 @@ class level_1(ShowBase):
         self.platform.reparentTo(platformnn)
 
     def createWall(self, x, y, z):
-        self.platform = loader.loadModel('../models/brick-cube/brick.egg')
-        geomnodes = self.platform.findAllMatches('**/+GeomNode')
+        self.wall = loader.loadModel('../models/brick-cube/brick.egg')
+        geomnodes = self.wall.findAllMatches('**/+GeomNode')
         gn = geomnodes.getPath(0).node()
         geom = gn.getGeom(0)
         mesh = BulletTriangleMesh()
         mesh.addGeom(geom)
         shape = BulletTriangleMeshShape(mesh, dynamic=False)
 
-        wallNode = BulletRigidBodyNode('Platform')
+        wallNode = BulletRigidBodyNode('Wall')
         wallNode.setMass(0)
         wallNode.addShape(shape)
         wallnn = render.attachNewNode(wallNode)
@@ -220,7 +220,7 @@ class level_1(ShowBase):
         wallnn.setScale(0.5, 50.5, 2.9)
 
         self.world.attachRigidBody(wallNode)
-        self.platform.reparentTo(wallnn)
+        self.wall.reparentTo(wallnn)
 
     def createLetter(self, loadFile, name, x, y, z):
         self.name = name
@@ -371,7 +371,7 @@ class level_1(ShowBase):
         self.createLetter(self.letterA, "A", 335, 483, 6)
 
         self.letterK = '../models/letters/letter_k.egg'
-        self.createLetter(self.letterK, "K", 10, 722, 0)
+        self.createLetter(self.letterK, "K", 197, 721, 0)
 
 
     def update(self, task):
@@ -475,10 +475,10 @@ class level_1(ShowBase):
         self.createPlatform(335, 483, 5)
 
         # Platforms to collect K
-        self.createPlatform(10, 739, -1)
-        self.createPlatform(10, 75, -1)
-        self.createPlatform(27, 722, -1)
-        self.createPlatform(-7, 722, -1)
+        self.createPlatform(184, 712, -1)
+        self.createPlatform(208, 730, -1)
+        self.createPlatform(207, 711, -1)
+        self.createPlatform(186, 731, -1)
 
         # Create letters for robot to collect
         self.createSetOfLetters()
