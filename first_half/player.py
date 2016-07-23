@@ -31,7 +31,7 @@ class Player(DirectObject):
         omega = 0.0
 
         # Change speed of robot
-        if inputState.isSet('forward'): speed.setY(10.0)
+        if inputState.isSet('forward'): speed.setY(40.0)
         if inputState.isSet('reverse'): speed.setY(-4.0)
         if inputState.isSet('left'):    speed.setX(-3.0)
         if inputState.isSet('right'):   speed.setX(3.0)
@@ -96,10 +96,18 @@ class Player(DirectObject):
         # self.actorNP.play("land")
         # self.actorNP.setPlayRate(0.8, "land")
 
-    def backToStartPos(self):
+    def startPosLevel1(self):
         self.characterNP.setPos(2, 0, 17.9983)
 
+    def startPosLevel2(self):
+        self.characterNP.setPos(-218, 496, 5)
+
     def cameraFollow(self, floater):
+        base.disableMouse()
+
+        desiredPos = self.characterNP.getPos() + self.characterNP.getQuat().xform(Vec3(3, -20, 6.5))
+        base.camera.setPos(desiredPos)
+
         # If the camera is too far from robot, move it closer.
         # If the camera is too close to robot, move it farther.
         camvec = self.characterNP.getPos() - base.camera.getPos()
@@ -113,6 +121,9 @@ class Player(DirectObject):
             base.camera.setPos(base.camera.getPos() - camvec * (10 - camdist))
             camdist = 10.0
 
+        # Camera follows floater that's slightly above player
         floater.setPos(self.characterNP.getPos())
-        floater.setZ(self.characterNP.getZ() + 2.0)
+        floater.setZ(self.characterNP.getZ() + 2.5)
         base.camera.lookAt(floater)
+
+

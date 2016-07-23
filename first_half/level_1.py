@@ -98,11 +98,13 @@ class level_1(ShowBase):
         self.bar.setDepthWrite(False)  # turns of depth writing so it doesn't interfere with itself
         self.bar.setLightOff()  # fixes the color on the bar itself
 
+
+        base.disableMouse()
         # Camera follows mouse
-        mat = Mat4(camera.getMat())
-        mat.invertInPlace()
-        base.mouseInterfaceNode.setMat(mat)
-        base.enableMouse()
+        # mat = Mat4(camera.getMat())
+        # mat.invertInPlace()
+        # base.mouseInterfaceNode.setMat(mat)
+        # base.enableMouse()
 
         # Go through gamesetup sequence
         self.setup()
@@ -179,7 +181,7 @@ class level_1(ShowBase):
         self.skybox.removeNode()
 
         self.skybox = loader.loadModel('../models/skybox_galaxy.egg')
-        self.skybox.setScale(200)  # make big enough to cover whole terrain
+        self.skybox.setScale(2000)  # make big enough to cover whole terrain
         self.skybox.setBin('background', 1)
         self.skybox.setDepthWrite(0)
         self.skybox.setLightOff()
@@ -404,8 +406,9 @@ class level_1(ShowBase):
         self.player.processInput(dt)
         self.world.doPhysics(dt, 4, 1./240.)
 
-        # Camera follows player
+        # Call camera function in player class
         self.player.cameraFollow(self.floater)
+
 
         # Identifying player collecting items
         self.collectLetters()

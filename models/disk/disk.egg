@@ -4,7 +4,7 @@
   "maya2egg2011 disk.mb disk.egg"
 }
 <Texture> phong4SG {
-  metal.png
+  soft-clouds.png
   <Scalar> format { rgb }
   <Scalar> wrapu { repeat }
   <Scalar> wrapv { repeat }
