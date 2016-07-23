@@ -12,7 +12,10 @@ from panda3d.core import Vec3
 from panda3d.core import Vec4
 from panda3d.core import PandaNode,NodePath,TextNode
 from panda3d.core import Fog
+from panda3d.core import Point3
 from panda3d.core import BitMask32
+from direct.interval.IntervalGlobal import *
+
 
 
 from enemy import Enemy
@@ -217,6 +220,32 @@ class level_1(ShowBase):
 
         self.world.attachRigidBody(node)
         self.platform.reparentTo(platformnn)
+
+    def createMovingPlatform(self, x, y, z):
+        self.movingPlatform = loader.loadModel('../models/disk/disk.egg')
+        geomnodes = self.movingPlatform.findAllMatches('**/+GeomNode')
+        gn = geomnodes.getPath(0).node()
+        geom = gn.getGeom(0)
+        mesh = BulletTriangleMesh()
+        mesh.addGeom(geom)
+        shape = BulletTriangleMeshShape(mesh, dynamic=False)
+
+        node = BulletRigidBodyNode('MovingPlatform')
+        node.setMass(0)
+        node.addShape(shape)
+        movingPlatformnn = render.attachNewNode(node)
+
+        #moves platform up and down
+        pandaPosInterval1 = movingPlatformnn.posInterval(3, Point3(x, y, z), startPos=Point3(x, y, z + 15))
+        pandaPosInterval2 = movingPlatformnn.posInterval(3, Point3(x, y , z + 15), startPos=Point3(x, y, z))
+
+        # Create and play the sequence that coordinates the intervals
+        pandaPace = Sequence(pandaPosInterval1, pandaPosInterval2, name="pandaPace")
+        pandaPace.loop()
+
+        movingPlatformnn.setScale(3)
+        self.world.attachRigidBody(node)
+        self.movingPlatform.reparentTo(movingPlatformnn)
 
     def createWall(self, x, y, z, h):
         self.wall = loader.loadModel('../models/brick-cube/brick.egg')
@@ -480,7 +509,7 @@ class level_1(ShowBase):
         self.createWall(-30.2215, -6.2, -2, 45)
         self.createWall(-203, 555.8, -2, 70)
 
-
+        #-----Level 1 Platforms-----
         # Platform to collect B
         self.createPlatform(72, 70.2927, -1)
 
@@ -499,6 +528,9 @@ class level_1(ShowBase):
         self.createPlatform(208, 730, -1)
         self.createPlatform(207, 711, -1)
         self.createPlatform(186, 731, -1)
+
+        #-----Level 2 Platforms-----
+        self.createMovingPlatform(-205, 460, -1.3)
 
         # Create letters for robot to collect
         self.createSetOfLetters()
