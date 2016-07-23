@@ -137,7 +137,6 @@ class level_1(ShowBase):
     def doRestart(self):
 
         self.worldCondition = True
-        self.onLevelTwo = False
 
         # Hide menu
         self.mainMenuBackground.hide()
@@ -182,8 +181,9 @@ class level_1(ShowBase):
 
 
     def doRestartLevel2(self):
-        self.doRestart()
         self.onLevelTwo = True
+        self.doRestart()
+        print "inrestart level2"
 
         # Set skybox to level 2 skybox
         self.skybox.removeNode()
@@ -198,13 +198,12 @@ class level_1(ShowBase):
         # Set music to level 2 music
         if self.backgroundMusic.play:
             self.backgroundMusic.stop()
-        self.backgroundMusic = loader.loadSfx('../sounds/debris.m4a')
+        self.backgroundMusic = loader.loadSfx('../sounds/irving-montage.m4a')
         self.backgroundMusic.setLoop(True)
         self.backgroundMusic.play()
 
-        # Set player back to starting state for level 1
+        # Set player back to starting state for level 2
         self.player.startPosLevel2()
-
 
 
     def createPlatform(self, x, y, z):
@@ -395,28 +394,31 @@ class level_1(ShowBase):
 
     def createSetOfLetters(self):
         self.letterB = '../models/letters/letter_b.egg'
-        self.createLetter(self.letterB, "B", 72, 70.2927, 0)
-
         self.letterR = '../models/letters/letter_r.egg'
-        self.createLetter(self.letterR, "R", 231, 227.5, 2)
-
         self.letterE = '../models/letters/letter_e.egg'
-        self.createLetter(self.letterE, "E", 340, 471, 3.1)
-
         self.letterA = '../models/letters/letter_a.egg'
-        self.createLetter(self.letterA, "A", 335, 483, 6)
-
         self.letterK = '../models/letters/letter_k.egg'
-        self.createLetter(self.letterK, "K", 197, 721, 0)
+
+        if self.onLevelTwo:
+            print "onlevel2"
+            self.letterB = '../models/letters/letter_b.egg'
+            self.createLetter(self.letterB, "B", -220, 417, 16)
+        else:
+            print "not on level2"
+            self.createLetter(self.letterB, "B", 72, 70.2927, 0)
+            self.createLetter(self.letterR, "R", 231, 227.5, 2)
+            self.createLetter(self.letterE, "E", 340, 471, 3.1)
+            self.createLetter(self.letterA, "A", 335, 483, 6)
+            self.createLetter(self.letterK, "K", 197, 721, 0)
 
     def createMovingPlatforms(self):
 
         # Platforms to collect B
         self.movingPlatforms.append(MovingPlatform(render, self.world, -220, 417, -1.4))
-        self.movingPlatforms.append(MovingPlatform(render, self.world, -231, 417, -1.4))
+        self.movingPlatforms.append(MovingPlatform(render, self.world, -231, 417, 3))
 
         # Platforms to collect R
-        self.movingPlatforms.append(MovingPlatform(render, self.world, -217, 288, -1.4))
+        self.movingPlatforms.append(MovingPlatform(render, self.world, -216, 288, -1.4))
         self.movingPlatforms.append(MovingPlatform(render, self.world, -217, 270, -1.4))
 
     def update(self, task):
@@ -474,7 +476,7 @@ class level_1(ShowBase):
         # Music
         self.backgroundMusic = loader.loadSfx('../sounds/elfman-piano-solo.ogg')
         self.backgroundMusic.setLoop(True)
-        self.backgroundMusic.play()
+        self.backgroundMusic.stop()
         # backgroundMusic.setVolume(4.0)  # will need to lower this when I add sound effects
 
         # Level 1 Skybox
