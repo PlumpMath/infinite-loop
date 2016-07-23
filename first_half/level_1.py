@@ -239,12 +239,12 @@ class level_1(ShowBase):
         movingPlatformnn = render.attachNewNode(node)
 
         #moves platform up and down
-        pandaPosInterval1 = movingPlatformnn.posInterval(3, Point3(x, y, z), startPos=Point3(x, y, z + 15))
-        pandaPosInterval2 = movingPlatformnn.posInterval(3, Point3(x, y , z + 15), startPos=Point3(x, y, z))
+        downInterval = movingPlatformnn.posInterval(3, Point3(x, y, z), startPos=Point3(x, y, z + 15))
+        upInterval = movingPlatformnn.posInterval(3, Point3(x, y , z + 15), startPos=Point3(x, y, z))
 
         # Create and play the sequence that coordinates the intervals
-        pandaPace = Sequence(pandaPosInterval1, pandaPosInterval2, name="pandaPace")
-        pandaPace.loop()
+        elevate = Sequence(downInterval, upInterval, name="elevate")
+        elevate.loop()
 
         movingPlatformnn.setScale(9, 7, 0.5)
         self.world.attachRigidBody(node)
@@ -313,7 +313,6 @@ class level_1(ShowBase):
         self.letters.remove(letter)
         print len(self.letters)
 
-
     def enemyAttackDecision(self):
         for enemy in self.enemies:
             enemyProximity = enemy.badCharacterNP.getDistance(self.player.characterNP)
@@ -327,6 +326,17 @@ class level_1(ShowBase):
             vec = characterPos - enemyPos
             vec.normalize()
             enemymovement = vec * 0.15 + enemyPos
+
+            # Make a list of all the enemies in the list except for current enemy
+            self.otherEnemies = self.enemies[:]
+            self.otherEnemies.remove(enemy)
+
+            # If 2 enemies get too close to each other, send one back to their starting position
+            for otherEnemy in self.otherEnemies:
+                enemy2enemyProx = enemy.badCharacterNP.getDistance(otherEnemy.badCharacterNP)
+
+                if enemy2enemyProx < 2:
+                    otherEnemy.backToStartPos()
 
             if enemyProximity < 20 and enemyProximity > 2:
                 enemy.badCharacterNP.lookAt(self.player.characterNP)
@@ -404,7 +414,7 @@ class level_1(ShowBase):
 
     def createEnemies(self):
         self.enemies.append(Enemy(render, self.world, 16, 23, -1, "Scientist"))
-        self.enemies.append(Enemy(render, self.world, -210, 490, -1, "Scientist"))
+        # self.enemies.append(Enemy(render, self.world, -210, 490, -1, "Scientist"))
         self.enemies.append(Enemy(render, self.world, 19, 27, -1, "Brawler"))
 
     def createSetOfLetters(self):
@@ -432,7 +442,7 @@ class level_1(ShowBase):
         #     y = base.mouseWatcherNode.getMouseY()
         #     print ("mouse Y: ", y)
 
-        print self.player.characterNP.getPos()
+        # print self.player.characterNP.getPos()
 
         dt = globalClock.getDt()
         self.player.processInput(dt)
