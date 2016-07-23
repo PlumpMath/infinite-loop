@@ -12,6 +12,8 @@ from panda3d.core import Vec3
 from panda3d.core import Vec4
 from panda3d.core import PandaNode,NodePath,TextNode
 from panda3d.core import Fog
+from panda3d.core import BitMask32
+
 
 from enemy import Enemy
 from player import Player
@@ -20,6 +22,7 @@ from panda3d.bullet import BulletWorld
 from panda3d.bullet import BulletRigidBodyNode
 from panda3d.bullet import BulletTriangleMesh
 from panda3d.bullet import BulletTriangleMeshShape
+from panda3d.bullet import *
 from panda3d.bullet import BulletDebugNode
 
 
@@ -199,6 +202,26 @@ class level_1(ShowBase):
         self.world.attachRigidBody(node)
         self.platform.reparentTo(platformnn)
 
+    def createWall(self, x, y, z):
+        self.platform = loader.loadModel('../models/brick-cube/brick.egg')
+        geomnodes = self.platform.findAllMatches('**/+GeomNode')
+        gn = geomnodes.getPath(0).node()
+        geom = gn.getGeom(0)
+        mesh = BulletTriangleMesh()
+        mesh.addGeom(geom)
+        shape = BulletTriangleMeshShape(mesh, dynamic=False)
+
+        wallNode = BulletRigidBodyNode('Platform')
+        wallNode.setMass(0)
+        wallNode.addShape(shape)
+        wallnn = render.attachNewNode(wallNode)
+        wallnn.setPos(x, y, z)
+        wallnn.setH(45)
+        wallnn.setScale(0.5, 50.5, 2.9)
+
+        self.world.attachRigidBody(wallNode)
+        self.platform.reparentTo(wallnn)
+
     def createLetter(self, loadFile, name, x, y, z):
         self.name = name
         self.letter = loader.loadModel(loadFile)
@@ -359,6 +382,8 @@ class level_1(ShowBase):
         #     y = base.mouseWatcherNode.getMouseY()
         #     print ("mouse Y: ", y)
 
+        print self.player.characterNP.getPos()
+
         dt = globalClock.getDt()
         self.player.processInput(dt)
         self.world.doPhysics(dt, 4, 1./240.)
@@ -432,6 +457,9 @@ class level_1(ShowBase):
         genfog.setExpDensity(0.0018)
         render.setFog(genfog)
         base.setBackgroundColor(*colour)
+
+        # Create wall
+        self.createWall(-30.2215, -6.2, -2)
 
         # Platform to collect B
         self.createPlatform(72, 70.2927, -1)
