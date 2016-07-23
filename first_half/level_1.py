@@ -15,7 +15,6 @@ from panda3d.core import Fog
 
 from enemy import Enemy
 from player import Player
-from mainMenu import MainMenu
 
 from panda3d.bullet import BulletWorld
 from panda3d.bullet import BulletRigidBodyNode
@@ -148,6 +147,29 @@ class level_1(ShowBase):
 
         self.numObjects.setText("Find letters B R E A K to escape\nLetters Remaining: " + str(len(self.letters)))
 
+        # Set skybox to level 1 skybox
+        self.skybox.removeNode()
+
+        self.skybox = loader.loadModel('../models/skybox.egg')
+        self.skybox.setScale(900) # make big enough to cover whole terrain
+        self.skybox.setBin('background', 1)
+        self.skybox.setDepthWrite(0)
+        self.skybox.setLightOff()
+        self.skybox.reparentTo(render)
+
+    def doRestartLevel2(self):
+        self.doRestart()
+
+        # Set skybox to level 2 skybox
+        self.skybox.removeNode()
+
+        self.skybox = loader.loadModel('../models/skybox_galaxy.egg')
+        self.skybox.setScale(200)  # make big enough to cover whole terrain
+        self.skybox.setBin('background', 1)
+        self.skybox.setDepthWrite(0)
+        self.skybox.setLightOff()
+        self.skybox.reparentTo(render)
+
     def createPlatform(self, x, y, z):
         self.platform = loader.loadModel('../models/disk/disk.egg')
         geomnodes = self.platform.findAllMatches('**/+GeomNode')
@@ -267,8 +289,8 @@ class level_1(ShowBase):
 
             self.mainMenuBackground = OnscreenImage(image='../models/main-menu-background.png', pos=(0, 0, 0),
                                                     scale=(1.4, 1, 1))
-            Button_level1 = DirectButton(text="LEVEL 1", scale=.1, pos=(-0.2, -0.2, -0.65))
-            Button_level2 = DirectButton(text="LEVEL 2", scale=.1, pos=(0.23, -0.2, -0.65))
+            Button_level1 = DirectButton(text="LEVEL 1", scale=.1, pos=(-0.2, -0.2, -0.65), command=self.doRestart)
+            Button_level2 = DirectButton(text="LEVEL 2", scale=.1, pos=(0.23, -0.2, -0.65), command=self.doRestartLevel2)
             Button_start = DirectButton(text="START", scale=.1, pos=(0.65, -0.2, -0.65), command=self.doRestart)
             Button_quit = DirectButton(text="QUIT", scale=.1, pos=(1, -0.2, -0.65), command=self.doExit)
 
@@ -284,8 +306,8 @@ class level_1(ShowBase):
     def startMenu(self, task):
         if self.menuOn:
             self.mainMenuBackground = OnscreenImage(image='../models/main-menu-background.png', pos=(0, 0, 0), scale=(1.4, 1, 1))
-            Button_level1 = DirectButton(text="LEVEL 1", scale=.1, pos=(-0.2, -0.2, -0.65))
-            Button_level2 = DirectButton(text="LEVEL 2", scale=.1, pos=(0.23, -0.2, -0.65))
+            Button_level1 = DirectButton(text="LEVEL 1", scale=.1, pos=(-0.2, -0.2, -0.65), command=self.doRestart)
+            Button_level2 = DirectButton(text="LEVEL 2", scale=.1, pos=(0.23, -0.2, -0.65), command=self.doRestartLevel2)
             Button_start = DirectButton(text="START", scale=.1, pos=(0.65, -0.2, -0.65), command=self.doRestart)
             Button_quit = DirectButton(text="QUIT", scale=.1, pos=(1, -0.2, -0.65), command=self.doExit)
 
@@ -360,7 +382,7 @@ class level_1(ShowBase):
             backgroundMusic.play()
             # backgroundMusic.setVolume(4.0)  # will need to lower this when I add sound effects
 
-        # Skybox
+        # Level 1 Skybox
         self.skybox = loader.loadModel('../models/skybox.egg')
         self.skybox.setScale(900) # make big enough to cover whole terrain
         self.skybox.setBin('background', 1)
