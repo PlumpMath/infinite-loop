@@ -31,7 +31,7 @@ class Player(DirectObject):
         omega = 0.0
 
         # Change speed of robot
-        if inputState.isSet('forward'): speed.setY(40.0)
+        if inputState.isSet('forward'): speed.setY(12.0)
         if inputState.isSet('reverse'): speed.setY(-4.0)
         if inputState.isSet('left'):    speed.setX(-3.0)
         if inputState.isSet('right'):   speed.setX(3.0)
@@ -88,8 +88,8 @@ class Player(DirectObject):
 
     def doJump(self):
         self.isJumping = True
-        self.character.setMaxJumpHeight(10.0)
-        self.character.setJumpSpeed(6.0)
+        self.character.setMaxJumpHeight(18.0)
+        self.character.setJumpSpeed(8.0)
         self.character.doJump()
         self.actorNP.play("jump")
         self.actorNP.setPlayRate(0.8, "jump")
@@ -101,6 +101,7 @@ class Player(DirectObject):
 
     def startPosLevel2(self):
         self.characterNP.setPos(-218, 496, 5)
+
 
     def cameraFollow(self, floater):
         base.disableMouse()

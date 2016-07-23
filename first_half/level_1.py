@@ -80,6 +80,7 @@ class level_1(ShowBase):
         self.isTakingDamage = False
         self.start = True
         self.worldCondition = False
+        self.onLevelTwo = False
 
         # Number of collectibles
         self.numObjects = addNumObj(
@@ -134,6 +135,7 @@ class level_1(ShowBase):
     def doRestart(self):
 
         self.worldCondition = True
+        self.onLevelTwo = False
 
         # Hide menu
         self.mainMenuBackground.hide()
@@ -179,6 +181,7 @@ class level_1(ShowBase):
 
     def doRestartLevel2(self):
         self.doRestart()
+        self.onLevelTwo = True
 
         # Set skybox to level 2 skybox
         self.skybox.removeNode()
@@ -444,7 +447,10 @@ class level_1(ShowBase):
 
         # Start from beginning position if player falls off track
         if self.player.characterNP.getZ() < -10.0:
-            self.player.startPosLevel1()
+            if self.onLevelTwo:
+                self.player.startPosLevel2()
+            else:
+                self.player.startPosLevel1()
 
         # If player gets too close to enemy, enemy attacks
         self.enemyAttackDecision()
