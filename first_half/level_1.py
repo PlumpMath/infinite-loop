@@ -225,7 +225,7 @@ class level_1(ShowBase):
         self.platform.reparentTo(platformnn)
 
     def createMovingPlatform(self, x, y, z):
-        self.movingPlatform = loader.loadModel('../models/disk/disk.egg')
+        self.movingPlatform = loader.loadModel('../models/square-flat/square.egg')
         geomnodes = self.movingPlatform.findAllMatches('**/+GeomNode')
         gn = geomnodes.getPath(0).node()
         geom = gn.getGeom(0)
@@ -246,7 +246,7 @@ class level_1(ShowBase):
         pandaPace = Sequence(pandaPosInterval1, pandaPosInterval2, name="pandaPace")
         pandaPace.loop()
 
-        movingPlatformnn.setScale(3)
+        movingPlatformnn.setScale(9, 7, 0.5)
         self.world.attachRigidBody(node)
         self.movingPlatform.reparentTo(movingPlatformnn)
 
@@ -536,7 +536,7 @@ class level_1(ShowBase):
         self.createPlatform(186, 731, -1)
 
         #-----Level 2 Platforms-----
-        self.createMovingPlatform(-205, 460, -1.3)
+        self.createMovingPlatform(-229, 417, -1.4)
 
         # Create letters for robot to collect
         self.createSetOfLetters()
