@@ -20,6 +20,7 @@ from direct.interval.IntervalGlobal import *
 
 from enemy import Enemy
 from player import Player
+from movingPlatform import MovingPlatform
 
 from panda3d.bullet import BulletWorld
 from panda3d.bullet import BulletRigidBodyNode
@@ -77,6 +78,7 @@ class level_1(ShowBase):
         self.collectedLetters = []
         self.health = 100
         self.enemies = []
+        self.movingPlatforms = []
         self.isTakingDamage = False
         self.start = True
         self.worldCondition = False
@@ -224,32 +226,6 @@ class level_1(ShowBase):
         self.world.attachRigidBody(node)
         self.platform.reparentTo(platformnn)
 
-    def createMovingPlatform(self, x, y, z):
-        self.movingPlatform = loader.loadModel('../models/square-flat/square.egg')
-        geomnodes = self.movingPlatform.findAllMatches('**/+GeomNode')
-        gn = geomnodes.getPath(0).node()
-        geom = gn.getGeom(0)
-        mesh = BulletTriangleMesh()
-        mesh.addGeom(geom)
-        shape = BulletTriangleMeshShape(mesh, dynamic=False)
-
-        node = BulletRigidBodyNode('MovingPlatform')
-        node.setMass(0)
-        node.addShape(shape)
-        movingPlatformnn = render.attachNewNode(node)
-
-        #moves platform up and down
-        downInterval = movingPlatformnn.posInterval(3, Point3(x, y, z), startPos=Point3(x, y, z + 15))
-        upInterval = movingPlatformnn.posInterval(3, Point3(x, y , z + 15), startPos=Point3(x, y, z))
-
-        # Create and play the sequence that coordinates the intervals
-        elevate = Sequence(downInterval, upInterval, name="elevate")
-        elevate.loop()
-
-        movingPlatformnn.setScale(9, 7, 0.5)
-        self.world.attachRigidBody(node)
-        self.movingPlatform.reparentTo(movingPlatformnn)
-
     def createWall(self, x, y, z, h):
         self.wall = loader.loadModel('../models/brick-cube/brick.egg')
         geomnodes = self.wall.findAllMatches('**/+GeomNode')
@@ -335,7 +311,7 @@ class level_1(ShowBase):
             for otherEnemy in self.otherEnemies:
                 enemy2enemyProx = enemy.badCharacterNP.getDistance(otherEnemy.badCharacterNP)
 
-                if enemy2enemyProx < 2:
+                if enemy2enemyProx < 1:
                     otherEnemy.backToStartPos()
 
             if enemyProximity < 20 and enemyProximity > 2:
@@ -433,6 +409,15 @@ class level_1(ShowBase):
         self.letterK = '../models/letters/letter_k.egg'
         self.createLetter(self.letterK, "K", 197, 721, 0)
 
+    def createMovingPlatforms(self):
+
+        # Platforms to collect B
+        self.movingPlatforms.append(MovingPlatform(render, self.world, -220, 417, -1.4))
+        self.movingPlatforms.append(MovingPlatform(render, self.world, -231, 417, -1.4))
+
+        # Platforms to collect R
+        self.movingPlatforms.append(MovingPlatform(render, self.world, -217, 288, -1.4))
+        self.movingPlatforms.append(MovingPlatform(render, self.world, -217, 270, -1.4))
 
     def update(self, task):
 
@@ -442,7 +427,7 @@ class level_1(ShowBase):
         #     y = base.mouseWatcherNode.getMouseY()
         #     print ("mouse Y: ", y)
 
-        # print self.player.characterNP.getPos()
+        print self.player.characterNP.getPos()
 
         dt = globalClock.getDt()
         self.player.processInput(dt)
@@ -476,7 +461,6 @@ class level_1(ShowBase):
         self.world = BulletWorld()
         self.world.setGravity(Vec3(0, 0, -9.81))
         self.world.setDebugNode(self.debugNP.node())
-
 
         # Main Character
         self.player = Player()
@@ -525,6 +509,9 @@ class level_1(ShowBase):
         self.createWall(-30.2215, -6.2, -2, 45)
         self.createWall(-203, 555.8, -2, 70)
 
+        # Create letters for robot to collect
+        self.createSetOfLetters()
+
         #-----Level 1 Platforms-----
         # Platform to collect B
         self.createPlatform(72, 70.2927, -1)
@@ -546,10 +533,10 @@ class level_1(ShowBase):
         self.createPlatform(186, 731, -1)
 
         #-----Level 2 Platforms-----
-        self.createMovingPlatform(-229, 417, -1.4)
-
-        # Create letters for robot to collect
-        self.createSetOfLetters()
+        # Moving platforms
+        if self.movingPlatforms > 0:
+            del self.movingPlatforms[:]
+        self.createMovingPlatforms()
 
         # Create complex mesh for Track using BulletTriangleMeshShape
         mesh = BulletTriangleMesh()
@@ -570,7 +557,6 @@ class level_1(ShowBase):
         self.world.attachRigidBody(tracknn.node())
         tracknn.setPos(27, -5, -2)
         self.track.reparentTo(tracknn)
-
 
 game = level_1()
 game.run()
