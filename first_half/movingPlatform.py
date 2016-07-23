@@ -6,8 +6,6 @@ from panda3d.bullet import BulletRigidBodyNode
 from direct.interval.IntervalGlobal import *
 from panda3d.core import Point3
 
-
-
 class MovingPlatform(DirectObject):
     def __init__(self, render, world, x, y, z):
 
@@ -25,11 +23,6 @@ class MovingPlatform(DirectObject):
         self.movingPlatformnn = render.attachNewNode(self.node)
         self.movingPlatformnn.setPos(x, y, z)
 
-        # # Store platform positions
-        # self.startPositionX = self.movingPlatformnn.getX()
-        # self.startPositionY = self.movingPlatformnn.getY()
-        # self.startPositionZ = self.movingPlatformnn.getZ()
-
         self.movingPlatformnn.setScale(9, 7, 0.5)
         world.attachRigidBody(self.node)
         self.movingPlatform.reparentTo(self.movingPlatformnn)
@@ -37,12 +30,16 @@ class MovingPlatform(DirectObject):
         # Associates movingPlatformnn with movingPlatform
         self.movingPlatformnn.setPythonTag("movingPlatformNP", self.movingPlatform)
 
-        # Create and play the sequence of intervals
+        # Create a sequence of intervals and play them together using parallel
         downInterval = self.movingPlatformnn.posInterval(3, Point3(x, y, z), startPos=Point3(x, y, z + 15))
         upInterval = self.movingPlatformnn.posInterval(3, Point3(x, y, z + 15), startPos=Point3(x, y, z))
 
-        elevateParallel = Parallel()
-        elevate = Sequence(downInterval, upInterval, name="elevate")
-        elevateParallel.append(elevate)
+        # To randomize a little, take x position of platform. If it's even move downward. If it's odd, upward
+        if x % 2 == 0:
+            elevate = Sequence(downInterval, upInterval, name="elevate")
+        else:
+            elevate = Sequence(upInterval, downInterval, name="elevateOpposite")
 
+        elevateParallel = Parallel()
+        elevateParallel.append(elevate)
         elevateParallel.loop()
