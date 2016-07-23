@@ -75,7 +75,7 @@ class level_1(ShowBase):
         self.health = 100
         self.enemies = []
         self.isTakingDamage = False
-        self.menuOn = True
+        self.start = True
         self.worldCondition = False
 
         # Number of collectibles
@@ -128,21 +128,15 @@ class level_1(ShowBase):
 
     def doRestart(self):
 
-        # #Destroy images/text
-        # if self.menuOn == False:
-        #     self.mainMenuTitle.destroy()
-
-        self.menuOn = False
         self.worldCondition = True
-        print "does worldcondition get printed at start of each game?"
 
         # Hide menu
         self.mainMenuBackground.hide()
         for b in self.buttons:
             b.hide()
 
-        # Set player back to starting state
-        self.player.backToStartPos()
+        # Set player back to starting state for level 1
+        self.player.startPosLevel1()
         self.bar["value"] = 100
         self.health = 100
 
@@ -170,6 +164,14 @@ class level_1(ShowBase):
         self.skybox.setLightOff()
         self.skybox.reparentTo(render)
 
+        # Set music to level 1 music
+        if self.backgroundMusic.play:
+            self.backgroundMusic.stop()
+        self.backgroundMusic = loader.loadSfx('../sounds/elfman-piano-solo.ogg')
+        self.backgroundMusic.setLoop(True)
+        self.backgroundMusic.play()
+
+
     def doRestartLevel2(self):
         self.doRestart()
 
@@ -182,6 +184,18 @@ class level_1(ShowBase):
         self.skybox.setDepthWrite(0)
         self.skybox.setLightOff()
         self.skybox.reparentTo(render)
+
+        # Set music to level 2 music
+        if self.backgroundMusic.play:
+            self.backgroundMusic.stop()
+        self.backgroundMusic = loader.loadSfx('../sounds/debris.m4a')
+        self.backgroundMusic.setLoop(True)
+        self.backgroundMusic.play()
+
+        # Set player back to starting state for level 1
+        self.player.startPosLevel2()
+
+
 
     def createPlatform(self, x, y, z):
         self.platform = loader.loadModel('../models/disk/disk.egg')
@@ -319,6 +333,7 @@ class level_1(ShowBase):
             # b.setTransparency(1)
             # b.resetFrameSize()
             self.worldCondition = False
+            self.backgroundMusic.stop()
 
             self.mainMenuBackground = OnscreenImage(image='../models/main-menu-background.png', pos=(0, 0, 0),
                                                     scale=(1.4, 1, 1))
@@ -337,7 +352,7 @@ class level_1(ShowBase):
 
     # Load main menu
     def startMenu(self, task):
-        if self.menuOn:
+        if self.start:
             self.mainMenuBackground = OnscreenImage(image='../models/main-menu-background.png', pos=(0, 0, 0), scale=(1.4, 1, 1))
             Button_level1 = DirectButton(text="LEVEL 1", scale=.1, pos=(-0.2, -0.2, -0.65), command=self.doRestart)
             Button_level2 = DirectButton(text="LEVEL 2", scale=.1, pos=(0.23, -0.2, -0.65), command=self.doRestartLevel2)
@@ -355,6 +370,7 @@ class level_1(ShowBase):
 
     def createEnemies(self):
         self.enemies.append(Enemy(render, self.world, 16, 23, -1, "Scientist"))
+        self.enemies.append(Enemy(render, self.world, -210, 490, -1, "Scientist"))
         self.enemies.append(Enemy(render, self.world, 19, 27, -1, "Brawler"))
 
     def createSetOfLetters(self):
@@ -396,7 +412,7 @@ class level_1(ShowBase):
 
         # Start from beginning position if player falls off track
         if self.player.characterNP.getZ() < -10.0:
-            self.player.backToStartPos()
+            self.player.startPosLevel1()
 
         # If player gets too close to enemy, enemy attacks
         self.enemyAttackDecision()
@@ -424,11 +440,10 @@ class level_1(ShowBase):
         self.createEnemies()
 
         # Music
-        backgroundMusic = loader.loadSfx('../sounds/elfman-piano-solo.ogg')
-        backgroundMusic.setLoop(True)
-        if self.menuOn == False:
-            backgroundMusic.play()
-            # backgroundMusic.setVolume(4.0)  # will need to lower this when I add sound effects
+        self.backgroundMusic = loader.loadSfx('../sounds/elfman-piano-solo.ogg')
+        self.backgroundMusic.setLoop(True)
+        self.backgroundMusic.play()
+        # backgroundMusic.setVolume(4.0)  # will need to lower this when I add sound effects
 
         # Level 1 Skybox
         self.skybox = loader.loadModel('../models/skybox.egg')
