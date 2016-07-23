@@ -202,7 +202,7 @@ class level_1(ShowBase):
         self.world.attachRigidBody(node)
         self.platform.reparentTo(platformnn)
 
-    def createWall(self, x, y, z):
+    def createWall(self, x, y, z, h):
         self.wall = loader.loadModel('../models/brick-cube/brick.egg')
         geomnodes = self.wall.findAllMatches('**/+GeomNode')
         gn = geomnodes.getPath(0).node()
@@ -216,7 +216,7 @@ class level_1(ShowBase):
         wallNode.addShape(shape)
         wallnn = render.attachNewNode(wallNode)
         wallnn.setPos(x, y, z)
-        wallnn.setH(45)
+        wallnn.setH(h)
         wallnn.setScale(0.5, 50.5, 2.9)
 
         self.world.attachRigidBody(wallNode)
@@ -458,8 +458,10 @@ class level_1(ShowBase):
         render.setFog(genfog)
         base.setBackgroundColor(*colour)
 
-        # Create wall
-        self.createWall(-30.2215, -6.2, -2)
+        # Create wall (x, y, z, h)
+        self.createWall(-30.2215, -6.2, -2, 45)
+        self.createWall(-203, 555.8, -2, 70)
+
 
         # Platform to collect B
         self.createPlatform(72, 70.2927, -1)
