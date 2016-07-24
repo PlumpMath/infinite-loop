@@ -21,6 +21,10 @@ class Enemy(DirectObject):
         self.badCharacterNP = render.attachNewNode(self.badCharacter)
         self.badCharacterNP.setPos(x, y, z)
 
+        self.startPositionX = self.badCharacterNP.getX()
+        self.startPositionY = self.badCharacterNP.getY()
+        self.startPositionZ = self.badCharacterNP.getZ()
+
         # self.badCharacterNP.setH(45)
         self.badCharacterNP.setCollideMask(BitMask32.allOn())
         world.attachCharacter(self.badCharacter)
@@ -42,6 +46,9 @@ class Enemy(DirectObject):
         # colour = (0.2, 0.2, 0.2)
         # fog = Fog("enemy fog")
         # fog.setColor(*colour)
-        # fog.setExpDensity(0.03)
+        # fog.setExpDensity(0.02)
         # self.badCharacterNP.setFog(fog)
         # base.setBackgroundColor(*colour)
+
+    def backToStartPos(self):
+        self.badCharacterNP.setPos(self.startPositionX, self.startPositionY, self.startPositionZ)
