@@ -183,7 +183,6 @@ class level_1(ShowBase):
     def doRestartLevel2(self):
         self.onLevelTwo = True
         self.doRestart()
-        print "inrestart level2"
 
         # Set skybox to level 2 skybox
         self.skybox.removeNode()
@@ -282,11 +281,9 @@ class level_1(ShowBase):
                 self.numObjects.setText("Find letters B R E A K to escape\nLetters Remaining: " + str(len(self.letters)))
 
     def clearRemainingLetters(self):
-        print "how many in remainingLetters: ", len(self.letters)
         letter.removeAllChildren()
         self.world.remove(letter)
         self.letters.remove(letter)
-        print len(self.letters)
 
     def enemyAttackDecision(self):
         for enemy in self.enemies:
@@ -400,11 +397,13 @@ class level_1(ShowBase):
         self.letterK = '../models/letters/letter_k.egg'
 
         if self.onLevelTwo:
-            print "onlevel2"
-            self.letterB = '../models/letters/letter_b.egg'
             self.createLetter(self.letterB, "B", -220, 417, 16)
+            self.createLetter(self.letterR, "R", -251, 288, 20)
+            self.createLetter(self.letterE, "E", -201.7, 53, 33)
+            self.createLetter(self.letterA, "A", -206, 41, 25)
+            self.createLetter(self.letterK, "K", -232, -174, 16)
+
         else:
-            print "not on level2"
             self.createLetter(self.letterB, "B", 72, 70.2927, 0)
             self.createLetter(self.letterR, "R", 231, 227.5, 2)
             self.createLetter(self.letterE, "E", 340, 471, 3.1)
@@ -415,11 +414,19 @@ class level_1(ShowBase):
 
         # Platforms to collect B
         self.movingPlatforms.append(MovingPlatform(render, self.world, -220, 417, -1.4))
-        self.movingPlatforms.append(MovingPlatform(render, self.world, -231, 417, 3))
 
         # Platforms to collect R
-        self.movingPlatforms.append(MovingPlatform(render, self.world, -216, 288, -1.4))
-        self.movingPlatforms.append(MovingPlatform(render, self.world, -217, 270, -1.4))
+        self.movingPlatforms.append(MovingPlatform(render, self.world, -240, 288, -1.4))
+        self.movingPlatforms.append(MovingPlatform(render, self.world, -251, 288, 4))
+
+        # Platforms to collect E and A
+        self.movingPlatforms.append(MovingPlatform(render, self.world, -214, 72, -1.4))
+        self.movingPlatforms.append(MovingPlatform(render, self.world, -203, 72, 5))
+        self.movingPlatforms.append(MovingPlatform(render, self.world, -202, 53, 17))
+        self.movingPlatforms.append(MovingPlatform(render, self.world, -207, 40.5, 8))
+
+        # Platform to collect K
+        self.movingPlatforms.append(MovingPlatform(render, self.world, -232, -174, -1.4))
 
     def update(self, task):
 
