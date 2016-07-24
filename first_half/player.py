@@ -1,4 +1,6 @@
 from direct.showbase.InputStateGlobal import inputState
+from direct.showbase.DirectObject import DirectObject
+
 from direct.actor.Actor import Actor
 
 from panda3d.core import Vec3
@@ -7,7 +9,6 @@ from panda3d.core import BitMask32
 from panda3d.bullet import BulletCapsuleShape
 from panda3d.bullet import BulletCharacterControllerNode
 from panda3d.bullet import ZUp
-from direct.showbase.DirectObject import DirectObject
 
 
 class Player(DirectObject):
@@ -99,11 +100,10 @@ class Player(DirectObject):
         # self.actorNP.setPlayRate(0.8, "land")
 
     def startPosLevel1(self):
-        self.characterNP.setPos(2, 0, 17.9983)
+        self.characterNP.setPos(2, 0, 5)
 
     def startPosLevel2(self):
         self.characterNP.setPos(-218, 496, 5)
-
 
     def cameraFollow(self, floater):
         base.disableMouse()

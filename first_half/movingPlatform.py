@@ -3,7 +3,9 @@ from direct.showbase.DirectObject import DirectObject
 from panda3d.bullet import BulletTriangleMesh
 from panda3d.bullet import BulletTriangleMeshShape
 from panda3d.bullet import BulletRigidBodyNode
+
 from direct.interval.IntervalGlobal import *
+
 from panda3d.core import Point3
 
 class MovingPlatform(DirectObject):

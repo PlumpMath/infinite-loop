@@ -2,8 +2,10 @@ import sys
 
 from direct.showbase.ShowBase import ShowBase
 from direct.showbase.InputStateGlobal import inputState
+
 from direct.gui.DirectGui import *
 from direct.gui.OnscreenImage import OnscreenImage
+from direct.gui.OnscreenText import OnscreenText
 
 from panda3d.core import AmbientLight
 from panda3d.core import DirectionalLight
@@ -12,17 +14,15 @@ from panda3d.core import Vec4
 from panda3d.core import PandaNode,NodePath,TextNode
 from panda3d.core import Fog
 
-
-
-
 from enemy import Enemy
 from player import Player
 from movingPlatform import MovingPlatform
 
-from panda3d.bullet import *
+from panda3d.bullet import BulletWorld
 from panda3d.bullet import BulletDebugNode
-
-
+from panda3d.bullet import BulletTriangleMesh
+from panda3d.bullet import BulletTriangleMeshShape
+from panda3d.bullet import BulletRigidBodyNode
 
 # -------DISPLAY-------
 # Display instructions for player, title of game, and number of items left to collect
@@ -57,8 +57,7 @@ class level_1(ShowBase):
         self.inst3 = addInstructions(0.85, "[A]: Turn Left")
         self.inst4 = addInstructions(0.80, "[S]: Walk Backwards")
         self.inst5 = addInstructions(0.75, "[D]: Turn Right")
-        self.inst6 = addInstructions(0.70, "[MOUSE]: Look")
-        self.inst7 = addInstructions(0.65, "[SPACE]: Jump")
+        self.inst6 = addInstructions(0.70, "[SPACE]: Jump")
 
         # Game state variables
         self.lettersRemaining = 5
@@ -95,11 +94,6 @@ class level_1(ShowBase):
 
 
         base.disableMouse()
-        # Camera follows mouse
-        # mat = Mat4(camera.getMat())
-        # mat.invertInPlace()
-        # base.mouseInterfaceNode.setMat(mat)
-        # base.enableMouse()
 
         # Go through gamesetup sequence
         self.setup()
@@ -127,16 +121,28 @@ class level_1(ShowBase):
 
         self.worldCondition = True
         self.menuOn = False
+        self.onLevelTwo = False
 
         # Hide menu
         self.mainMenuBackground.hide()
         for b in self.buttons:
             b.hide()
 
+        # Set music to level 1 music
+        if self.backgroundMusic.play:
+            self.backgroundMusic.stop()
+        self.backgroundMusic = loader.loadSfx('../sounds/elfman-piano-solo.ogg')
+        self.backgroundMusic.setLoop(True)
+        self.backgroundMusic.play()
+
         # Set player back to starting state for level 1
         self.player.startPosLevel1()
         self.bar["value"] = 100
         self.health = 100
+
+        # Set enemies back to starting state
+        for enemy in self.enemies:
+            enemy.backToStartPos()
 
         # Set collectibles back to starting state
         for l in self.letters:
@@ -148,41 +154,29 @@ class level_1(ShowBase):
 
         self.numObjects.setText("Find letters B R E A K to escape\nLetters Remaining: " + str(len(self.letters)))
 
-        # Set skybox to level 1 skybox
-        self.skybox.removeNode()
-
-        self.skybox = loader.loadModel('../models/skybox.egg')
-        self.skybox.setScale(900) # make big enough to cover whole terrain
-        self.skybox.setBin('background', 1)
-        self.skybox.setDepthWrite(0)
-        self.skybox.setLightOff()
-        self.skybox.reparentTo(render)
-
-        # Set music to level 1 music
-        if self.backgroundMusic.play:
-            self.backgroundMusic.stop()
-        self.backgroundMusic = loader.loadSfx('../sounds/elfman-piano-solo.ogg')
-        self.backgroundMusic.setLoop(True)
-        self.backgroundMusic.play()
-
-
     def doRestartLevel2(self):
-        self.onLevelTwo = True
-        self.doRestart()
 
-        # Create level 2 enemies only
-        self.enemies[:] = []
-        self.createEnemies()
+        self.worldCondition = True
+        self.menuOn = False
+        self.onLevelTwo = True
+
+        # Hide menu
+        self.mainMenuBackground.hide()
+        for b in self.buttons:
+            b.hide()
 
         # Set skybox to level 2 skybox
         self.skybox.removeNode()
 
-        self.skybox = loader.loadModel('../models/skybox_galaxy.egg')
-        self.skybox.setScale(2000)  # make big enough to cover whole terrain
+        self.skybox = loader.loadModel('../models/skybox.egg')
+        self.skybox.setScale(1100)  # make big enough to cover whole terrain
         self.skybox.setBin('background', 1)
         self.skybox.setDepthWrite(0)
         self.skybox.setLightOff()
         self.skybox.reparentTo(render)
+
+        # b = OnscreenImage(parent=render2d, image="../models/textures/storm.jpg")
+        # base.cam.node().getDisplayRegion(0).setSort(30)
 
         # Set music to level 2 music
         if self.backgroundMusic.play:
@@ -193,7 +187,22 @@ class level_1(ShowBase):
 
         # Set player back to starting state for level 2
         self.player.startPosLevel2()
+        self.bar["value"] = 100
+        self.health = 100
 
+        # Set enemies back to starting state
+        for enemy in self.enemies:
+            enemy.backToStartPos()
+
+        # Set collectibles back to starting state
+        for l in self.letters:
+            l.removeAllChildren()
+            self.world.remove(l)
+        self.letters[:] = []
+        self.collectedLetters[:] = []
+        self.createSetOfLetters()
+
+        self.numObjects.setText("Find letters B R E A K to escape\nLetters Remaining: " + str(len(self.letters)))
 
     def createPlatform(self, x, y, z):
         self.platform = loader.loadModel('../models/disk/disk.egg')
@@ -229,7 +238,7 @@ class level_1(ShowBase):
         wallnn = render.attachNewNode(wallNode)
         wallnn.setPos(x, y, z)
         wallnn.setH(h)
-        wallnn.setScale(0.5, 50.5, 19)
+        wallnn.setScale(0.5, 50.5, 4.5)
 
         self.world.attachRigidBody(wallNode)
         self.wall.reparentTo(wallnn)
@@ -337,8 +346,8 @@ class level_1(ShowBase):
         self.mainMenuBackground = OnscreenImage(image='../models/main-menu-background.png', pos=(0, 0, 0),
                                                 scale=(1.4, 1, 1))
 
-        button_level1 = DirectButton(text="LEVEL 1", scale=.1, pos=(-0.2, -0.2, -0.65), command=self.doRestart)
-        button_level2 = DirectButton(text="LEVEL 2", scale=.1, pos=(0.23, -0.2, -0.65), command=self.doRestartLevel2)
+        button_level1 = DirectButton(text="LEVEL 1", scale=.1, pos=(0.23, -0.2, -0.65), command=self.doRestart)
+        button_level2 = DirectButton(text="LEVEL 2", scale=.1, pos=(0.65, -0.2, -0.65), command=self.doRestartLevel2)
         button_quit = DirectButton(text="QUIT", scale=.1, pos=(1, -0.2, -0.65), command=self.doExit)
 
         # Redetermine size or else buttons may not be clickable
@@ -355,7 +364,8 @@ class level_1(ShowBase):
             self.backgroundMusic.stop()
             self.dead.play()
             self.buildMenu()
-        if len(self.letters) == 0 and len(self.collectedLetters) > 0:
+
+        if len(self.letters) == 0 and len(self.collectedLetters) > 0 and self.worldCondition:
             # Stop music and show menu
             self.worldCondition = False
             self.backgroundMusic.stop()
@@ -371,53 +381,30 @@ class level_1(ShowBase):
         return task.cont
 
     def createEnemies(self):
-        if self.onLevelTwo:
-            print "on level 2"
-            # Level 2 Enemies (Mixed bag)
-            self.enemies.append(Enemy(render, self.world, -220.549, 427.425, -1, "Scientist"))
-            # self.enemies.append(Enemy(render, self.world, -223.242, 415.591, -1, "Brawler"))
-            # self.enemies.append(Enemy(render, self.world, -211.013, 417.047, -1, "Voltage"))
-            self.enemies.append(Enemy(render, self.world, -244.055, 304.031, -1, "Cinder"))
-            self.enemies.append(Enemy(render, self.world, -250.473, 294.736, -1, "Shield"))
-            # self.enemies.append(Enemy(render, self.world, -247.543, 285.703, -1, "Wraith"))
-            # self.enemies.append(Enemy(render, self.world, -234.8, 285.066, -1, "Scientist"))
-            self.enemies.append(Enemy(render, self.world, -214.313, 77.9221, -1, "Brawler"))
-            self.enemies.append(Enemy(render, self.world, -210.797, 63.8862, -1, "Voltage"))
-            # self.enemies.append(Enemy(render, self.world, -206.397, 68.8532, -1, "Cinder"))
-            self.enemies.append(Enemy(render, self.world, -212.291, 19.0834, -1, "Bricker"))
-            # self.enemies.append(Enemy(render, self.world, -237.824, -162.731, -1, "Wraith"))
-            self.enemies.append(Enemy(render, self.world, -226.271, -170.715, -1, "Scientist"))
-            self.enemies.append(Enemy(render, self.world, -231.582, -171.925, -1, "Brawler"))
-            self.enemies.append(Enemy(render, self.world, -236.969, -178.02, -1, "Shield"))
-        else:
-            print "on level 1"
-            # Level 1 Security guards
-            self.enemies.append(Enemy(render, self.world, 65, 68, -1, "SecurityGuard"))
-            self.enemies.append(Enemy(render, self.world, 69, 64, -1, "SecurityGuard"))
-            self.enemies.append(Enemy(render, self.world, 78, 72, -1, "SecurityGuard"))
-            self.enemies.append(Enemy(render, self.world, 204.968, 212.61, -1, "SecurityGuard"))
-            self.enemies.append(Enemy(render, self.world, 209.655, 203.636, -1, "SecurityGuard"))
-            self.enemies.append(Enemy(render, self.world, 217.109, 212.297, -1, "SecurityGuard"))
-            self.enemies.append(Enemy(render, self.world, 223.065, 220.857, -1, "SecurityGuard"))
-            self.enemies.append(Enemy(render, self.world, 6235.36, 222.674, -1, "SecurityGuard"))
-            self.enemies.append(Enemy(render, self.world, 7236.321, 231.365, -1, "SecurityGuard"))
-            self.enemies.append(Enemy(render, self.world, 332.143, 455.849, -1, "SecurityGuard"))
-            self.enemies.append(Enemy(render, self.world, 323.669, 460.24, -1, "SecurityGuard"))
-            self.enemies.append(Enemy(render, self.world, 329.634, 468.654, -1, "SecurityGuard"))
-            # self.enemies.append(Enemy(render, self.world, 200.354, 710.706, -1, "SecurityGuard"))
-            # self.enemies.append(Enemy(render, self.world, 209.07, 704.83, -1, "SecurityGuard"))
-            self.enemies.append(Enemy(render, self.world, 7212.075, 715.181, -1, "SecurityGuard"))
-            self.enemies.append(Enemy(render, self.world, 212.038, 724.852, -1, "SecurityGuard"))
-            # self.enemies.append(Enemy(render, self.world, 203.831, 724.983, -1, "SecurityGuard"))
-            # self.enemies.append(Enemy(render, self.world, 202.971, 734.249, -1, "SecurityGuard"))
-            # self.enemies.append(Enemy(render, self.world, 6211.922, 735.278, -1, "SecurityGuard"))
-            self.enemies.append(Enemy(render, self.world, 191.579, 727.393, -1, "SecurityGuard"))
-            self.enemies.append(Enemy(render, self.world, 190.676, 735.513, -1, "SecurityGuard"))
-            self.enemies.append(Enemy(render, self.world, 180.853, 735.058, -1, "SecurityGuard"))
-            self.enemies.append(Enemy(render, self.world, 6181.708, 726.1, -1, "SecurityGuard"))
-            self.enemies.append(Enemy(render, self.world, 187.881, 717.305, -1, "SecurityGuard"))
-            self.enemies.append(Enemy(render, self.world, 177.801, 714.21, -1, "SecurityGuard"))
-            self.enemies.append(Enemy(render, self.world, 180.247, 706.548, -1, "SecurityGuard"))
+
+        # Level 2 Enemies (Mixed bag)
+        self.enemies.append(Enemy(render, self.world, -220.549, 427.425, -1, "Scientist"))
+        self.enemies.append(Enemy(render, self.world, -244.055, 304.031, -1, "Cinder"))
+        self.enemies.append(Enemy(render, self.world, -250.473, 294.736, -1, "Shield"))
+        self.enemies.append(Enemy(render, self.world, -214.313, 77.9221, -1, "Brawler"))
+        self.enemies.append(Enemy(render, self.world, -210.797, 63.8862, -1, "Voltage"))
+        self.enemies.append(Enemy(render, self.world, -212.291, 19.0834, -1, "Bricker"))
+        self.enemies.append(Enemy(render, self.world, -226.271, -170.715, -1, "Scientist"))
+        self.enemies.append(Enemy(render, self.world, -231.582, -171.925, -1, "Brawler"))
+        self.enemies.append(Enemy(render, self.world, -236.969, -178.02, -1, "Shield"))
+
+        # Level 1 Security guards
+        self.enemies.append(Enemy(render, self.world, 65, 68, -1, "SecurityGuard"))
+        self.enemies.append(Enemy(render, self.world, 204.968, 212.61, -1, "SecurityGuard"))
+        self.enemies.append(Enemy(render, self.world, 209.655, 203.636, -1, "SecurityGuard"))
+        self.enemies.append(Enemy(render, self.world, 332.143, 455.849, -1, "SecurityGuard"))
+        self.enemies.append(Enemy(render, self.world, 323.669, 460.24, -1, "SecurityGuard"))
+        self.enemies.append(Enemy(render, self.world, 329.634, 468.654, -1, "SecurityGuard"))
+        self.enemies.append(Enemy(render, self.world, 200.354, 710.706, -1, "SecurityGuard"))
+        self.enemies.append(Enemy(render, self.world, 212.038, 724.852, -1, "SecurityGuard"))
+        self.enemies.append(Enemy(render, self.world, 190.676, 735.513, -1, "SecurityGuard"))
+        self.enemies.append(Enemy(render, self.world, 177.801, 714.21, -1, "SecurityGuard"))
+        self.enemies.append(Enemy(render, self.world, 180.247, 706.548, -1, "SecurityGuard"))
 
     def createSetOfLetters(self):
         self.letterB = '../models/letters/letter_b.egg'
@@ -435,7 +422,7 @@ class level_1(ShowBase):
 
         else:
             self.createLetter(self.letterB, "B", 72, 70.2927, 0)
-            self.createLetter(self.letterR, "R", 225, 223, 2)
+            self.createLetter(self.letterR, "R", 225, 223, 4)
             self.createLetter(self.letterE, "E", 340, 471, 3.1)
             self.createLetter(self.letterA, "A", 335, 483, 6)
             self.createLetter(self.letterK, "K", 197, 721, 0)
@@ -460,14 +447,6 @@ class level_1(ShowBase):
 
     def update(self, task):
 
-        # if base.mouseWatcherNode.hasMouse():
-        #     x = base.mouseWatcherNode.getMouseX()
-        #     print ("mouse X: ", x)
-        #     y = base.mouseWatcherNode.getMouseY()
-        #     print ("mouse Y: ", y)
-
-        print self.player.characterNP.getPos()
-
         dt = globalClock.getDt()
         self.player.processInput(dt)
         self.world.doPhysics(dt, 4, 1./240.)
@@ -475,13 +454,11 @@ class level_1(ShowBase):
         # Call camera function in player class
         self.player.cameraFollow(self.floater)
 
-
         # Identifying player collecting items
         self.collectLetters()
 
         # Start from beginning position if player falls off track
         if self.player.characterNP.getZ() < -10.0:
-            # self.falling.play()
             if self.onLevelTwo:
                 self.player.startPosLevel2()
             else:
@@ -494,6 +471,7 @@ class level_1(ShowBase):
 
     def setup(self):
 
+        # Debug (useful to turn on for physics)
         self.debugNP = self.render.attachNewNode(BulletDebugNode('Debug'))
         self.debugNP.hide()
 
@@ -520,15 +498,14 @@ class level_1(ShowBase):
         self.collect.setVolume(1)
         self.damage = base.loader.loadSfx("../sounds/damage.wav")
         self.damage.setVolume(0.5)
-        self.winner = base.loader.loadSfx("../sounds/win.wav")
+        self.winner = base.loader.loadSfx("../sounds/win-yay.wav")
         self.winner.setVolume(1)
         self.dead = base.loader.loadSfx("../sounds/severe-damage.wav")
         self.dead.setVolume(1)
 
-
         # Level 1 Skybox
-        self.skybox = loader.loadModel('../models/skybox.egg')
-        self.skybox.setScale(900) # make big enough to cover whole terrain
+        self.skybox = loader.loadModel('../models/skybox_galaxy.egg')
+        self.skybox.setScale(1000) # make big enough to cover whole terrain
         self.skybox.setBin('background', 1)
         self.skybox.setDepthWrite(0)
         self.skybox.setLightOff()
@@ -558,16 +535,13 @@ class level_1(ShowBase):
         self.createWall(-30.2215, -6.2, -2, 45)
         self.createWall(-203, 555.8, -2, 70)
 
-        # Create letters for robot to collect
-        self.createSetOfLetters()
-
         #-----Level 1 Platforms-----
         # Platform to collect B
         self.createPlatform(72, 70.2927, -1)
 
         # Platforms to collect R
         self.createPlatform(211, 210, -1)
-        self.createPlatform(225, 223, 1)
+        self.createPlatform(225, 223, 2.7)
 
         # Platforms to collect E and A
         self.createPlatform(330, 462, -0.4)
