@@ -64,9 +64,7 @@ class Player(DirectObject):
         w = 0.4
         shape = BulletCapsuleShape(w + 0.3, h - 2 * w, ZUp)
 
-
         self.character = BulletCharacterControllerNode(shape, 0.4, 'Robot')
-        # self.character.setMass(1.0)
         self.characterNP = render.attachNewNode(self.character)
         self.characterNP.setPos(2, 0, 18)
 
@@ -84,7 +82,7 @@ class Player(DirectObject):
         self.actorNP.reparentTo(self.characterNP)
         self.actorNP.setScale(0.15)
         self.actorNP.setH(180)
-        self.actorNP.setPos(0, 0, 0)
+        self.actorNP.setPos(0, 0, -0.06)
 
     def doJump(self):
         self.isJumping = True
