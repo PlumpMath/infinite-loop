@@ -385,9 +385,53 @@ class level_1(ShowBase):
         return task.cont
 
     def createEnemies(self):
-        self.enemies.append(Enemy(render, self.world, 16, 23, -1, "Scientist"))
-        # self.enemies.append(Enemy(render, self.world, -210, 490, -1, "Scientist"))
-        self.enemies.append(Enemy(render, self.world, 19, 27, -1, "Brawler"))
+        # Level 1 Security guards
+        self.enemies.append(Enemy(render, self.world, 65, 68, -1, "SecurityGuard"))
+        self.enemies.append(Enemy(render, self.world, 69, 64, -1, "SecurityGuard"))
+        self.enemies.append(Enemy(render, self.world, 78, 72, -1, "SecurityGuard"))
+        self.enemies.append(Enemy(render, self.world, 204.968, 212.61, -1, "SecurityGuard"))
+        self.enemies.append(Enemy(render, self.world, 209.655, 203.636, -1, "SecurityGuard"))
+        self.enemies.append(Enemy(render, self.world, 217.109, 212.297, -1, "SecurityGuard"))
+        self.enemies.append(Enemy(render, self.world, 223.065, 220.857, -1, "SecurityGuard"))
+        self.enemies.append(Enemy(render, self.world, 6235.36, 222.674, -1, "SecurityGuard"))
+        self.enemies.append(Enemy(render, self.world, 7236.321, 231.365, -1, "SecurityGuard"))
+        self.enemies.append(Enemy(render, self.world, 332.143, 455.849, -1, "SecurityGuard"))
+        self.enemies.append(Enemy(render, self.world, 323.669, 460.24, -1, "SecurityGuard"))
+        self.enemies.append(Enemy(render, self.world, 329.634, 468.654, -1, "SecurityGuard"))
+        self.enemies.append(Enemy(render, self.world, 200.354, 710.706, -1, "SecurityGuard"))
+        self.enemies.append(Enemy(render, self.world, 209.07, 704.83, -1, "SecurityGuard"))
+        self.enemies.append(Enemy(render, self.world, 7212.075, 715.181, -1, "SecurityGuard"))
+        self.enemies.append(Enemy(render, self.world, 212.038, 724.852, -1, "SecurityGuard"))
+        self.enemies.append(Enemy(render, self.world, 203.831, 724.983, -1, "SecurityGuard"))
+        self.enemies.append(Enemy(render, self.world, 202.971, 734.249, -1, "SecurityGuard"))
+        self.enemies.append(Enemy(render, self.world, 6211.922, 735.278, -1, "SecurityGuard"))
+        self.enemies.append(Enemy(render, self.world, 191.579, 727.393, -1, "SecurityGuard"))
+        self.enemies.append(Enemy(render, self.world, 190.676, 735.513, -1, "SecurityGuard"))
+        self.enemies.append(Enemy(render, self.world, 180.853, 735.058, -1, "SecurityGuard"))
+        self.enemies.append(Enemy(render, self.world, 6181.708, 726.1, -1, "SecurityGuard"))
+        self.enemies.append(Enemy(render, self.world, 187.881, 717.305, -1, "SecurityGuard"))
+        self.enemies.append(Enemy(render, self.world, 177.801, 714.21, -1, "SecurityGuard"))
+        self.enemies.append(Enemy(render, self.world, 180.247, 706.548, -1, "SecurityGuard"))
+
+        # Level 2 Enemies (Mixed bag)
+        self.enemies.append(Enemy(render, self.world, -220.549, 427.425, -1, "Scientist"))
+        self.enemies.append(Enemy(render, self.world, -223.242, 415.591, -1, "Brawler"))
+        self.enemies.append(Enemy(render, self.world, -211.013, 417.047, -1, "Voltage"))
+        self.enemies.append(Enemy(render, self.world, -244.055, 304.031, -1, "Cinder"))
+        self.enemies.append(Enemy(render, self.world, -250.473, 294.736, -1, "Shield"))
+        self.enemies.append(Enemy(render, self.world, -247.543, 285.703, -1, "Wraith"))
+        self.enemies.append(Enemy(render, self.world, -234.8, 285.066, -1, "Scientist"))
+        self.enemies.append(Enemy(render, self.world, -214.313, 77.9221, -1, "Brawler"))
+        self.enemies.append(Enemy(render, self.world, -210.797, 63.8862, -1, "Voltage"))
+        self.enemies.append(Enemy(render, self.world, -206.397, 68.8532, -1, "Cinder"))
+        self.enemies.append(Enemy(render, self.world, -212.291, 19.0834, -1, "Bricker"))
+        self.enemies.append(Enemy(render, self.world, -237.824, -162.731, -1, "Wraith"))
+        self.enemies.append(Enemy(render, self.world, -226.271, -170.715, -1, "Scientist"))
+        self.enemies.append(Enemy(render, self.world, -231.582, -171.925, -1, "Brawler"))
+        self.enemies.append(Enemy(render, self.world, -236.969, -178.02, -1, "Shield"))
+
+
+
 
     def createSetOfLetters(self):
         self.letterB = '../models/letters/letter_b.egg'
@@ -405,7 +449,7 @@ class level_1(ShowBase):
 
         else:
             self.createLetter(self.letterB, "B", 72, 70.2927, 0)
-            self.createLetter(self.letterR, "R", 231, 227.5, 2)
+            self.createLetter(self.letterR, "R", 225, 223, 2)
             self.createLetter(self.letterE, "E", 340, 471, 3.1)
             self.createLetter(self.letterA, "A", 335, 483, 6)
             self.createLetter(self.letterK, "K", 197, 721, 0)
@@ -527,7 +571,7 @@ class level_1(ShowBase):
 
         # Platforms to collect R
         self.createPlatform(211, 210, -1)
-        self.createPlatform(231, 227.5, 1)
+        self.createPlatform(225, 223, 1)
 
         # Platforms to collect E and A
         self.createPlatform(330, 462, -0.4)
