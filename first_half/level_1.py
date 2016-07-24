@@ -32,11 +32,6 @@ from panda3d.bullet import BulletDebugNode
 
 
 # -------DISPLAY-------
-
-# menu = MainMenu()
-# menu.frame.show()
-
-
 # Display instructions for player, title of game, and number of items left to collect
 def addInstructions(pos, msg):
     return OnscreenText(text=msg, style=1, fg=(1,1,1,1), pos=(-1.3, pos), align=TextNode.ALeft, scale = .05)
@@ -149,8 +144,7 @@ class level_1(ShowBase):
         self.health = 100
 
         # Set enemies back to starting state
-        for enemy in self.enemies:
-            enemy.backToStartPos()
+        self.createEnemies()
 
         # Set collectibles back to starting state
         for l in self.letters:
@@ -339,99 +333,83 @@ class level_1(ShowBase):
     def reduceHealth(self):
         self.bar["value"] -= 0.1
 
+    # Build menu with background and buttons
+    def buildMenu(self):
+        self.mainMenuBackground = OnscreenImage(image='../models/main-menu-background.png', pos=(0, 0, 0),
+                                                scale=(1.4, 1, 1))
+
+        button_level1 = DirectButton(text="LEVEL 1", scale=.1, pos=(-0.2, -0.2, -0.65), command=self.doRestart)
+        button_level2 = DirectButton(text="LEVEL 2", scale=.1, pos=(0.23, -0.2, -0.65), command=self.doRestartLevel2)
+        button_quit = DirectButton(text="QUIT", scale=.1, pos=(1, -0.2, -0.65), command=self.doExit)
+
+        # Redetermine size or else buttons may not be clickable
+        self.buttons = [button_level1, button_level2, button_quit]
+        for b in self.buttons:
+            b.setTransparency(1)
+            b.resetFrameSize()
+
     # Menus for losing conditions
     def updateWinLose(self, task):
-        if (self.bar["value"] < 1 or (len(self.letters) == 4 and len(self.collectedLetters) > 0))and self.worldCondition:
-            # self.mainMenuTitle = OnscreenImage(image='../models/sorry.png', pos=(0, 0, 0))
-            # self.mainMenuTitle.setTransparency(TransparencyAttrib.MAlpha)
-            #
-            # b = DirectButton(image='../models/retry_button.png', scale=.08, relief=None, command=self.doRestart)
-            # b.setTransparency(1)
-            # b.resetFrameSize()
+        if (self.bar["value"] < 1 or (len(self.letters) == 0 and len(self.collectedLetters) > 0))and self.worldCondition:
+            # Stop music and show menu
             self.worldCondition = False
             self.backgroundMusic.stop()
-
-            self.mainMenuBackground = OnscreenImage(image='../models/main-menu-background.png', pos=(0, 0, 0),
-                                                    scale=(1.4, 1, 1))
-            Button_level1 = DirectButton(text="LEVEL 1", scale=.1, pos=(-0.2, -0.2, -0.65), command=self.doRestart)
-            Button_level2 = DirectButton(text="LEVEL 2", scale=.1, pos=(0.23, -0.2, -0.65), command=self.doRestartLevel2)
-            Button_start = DirectButton(text="START", scale=.1, pos=(0.65, -0.2, -0.65), command=self.doRestart)
-            Button_quit = DirectButton(text="QUIT", scale=.1, pos=(1, -0.2, -0.65), command=self.doExit)
-
-            # Redetermine size or else buttons may not be clickable
-            self.buttons = [Button_level1, Button_level2, Button_start, Button_quit]
-            for b in self.buttons:
-                b.setTransparency(1)
-                b.resetFrameSize()
-
+            self.buildMenu()
         return task.cont
 
     # Load main menu
     def startMenu(self, task):
         if self.start:
-            self.mainMenuBackground = OnscreenImage(image='../models/main-menu-background.png', pos=(0, 0, 0), scale=(1.4, 1, 1))
-            Button_level1 = DirectButton(text="LEVEL 1", scale=.1, pos=(-0.2, -0.2, -0.65), command=self.doRestart)
-            Button_level2 = DirectButton(text="LEVEL 2", scale=.1, pos=(0.23, -0.2, -0.65), command=self.doRestartLevel2)
-            Button_start = DirectButton(text="START", scale=.1, pos=(0.65, -0.2, -0.65), command=self.doRestart)
-            Button_quit = DirectButton(text="QUIT", scale=.1, pos=(1, -0.2, -0.65), command=self.doExit)
-
-            # Redetermine size or else buttons may not be clickable
-            self.buttons = [Button_level1, Button_level2, Button_start, Button_quit]
-            for b in self.buttons:
-                b.setTransparency(1)
-                b.resetFrameSize()
-
+            self.buildMenu()
             return task.done
         return task.cont
 
     def createEnemies(self):
-        # Level 1 Security guards
-        self.enemies.append(Enemy(render, self.world, 65, 68, -1, "SecurityGuard"))
-        self.enemies.append(Enemy(render, self.world, 69, 64, -1, "SecurityGuard"))
-        self.enemies.append(Enemy(render, self.world, 78, 72, -1, "SecurityGuard"))
-        self.enemies.append(Enemy(render, self.world, 204.968, 212.61, -1, "SecurityGuard"))
-        # self.enemies.append(Enemy(render, self.world, 209.655, 203.636, -1, "SecurityGuard"))
-        # self.enemies.append(Enemy(render, self.world, 217.109, 212.297, -1, "SecurityGuard"))
-        # self.enemies.append(Enemy(render, self.world, 223.065, 220.857, -1, "SecurityGuard"))
-        # self.enemies.append(Enemy(render, self.world, 6235.36, 222.674, -1, "SecurityGuard"))
-        self.enemies.append(Enemy(render, self.world, 7236.321, 231.365, -1, "SecurityGuard"))
-        self.enemies.append(Enemy(render, self.world, 332.143, 455.849, -1, "SecurityGuard"))
-        self.enemies.append(Enemy(render, self.world, 323.669, 460.24, -1, "SecurityGuard"))
-        self.enemies.append(Enemy(render, self.world, 329.634, 468.654, -1, "SecurityGuard"))
-        # self.enemies.append(Enemy(render, self.world, 200.354, 710.706, -1, "SecurityGuard"))
-        # self.enemies.append(Enemy(render, self.world, 209.07, 704.83, -1, "SecurityGuard"))
-        # self.enemies.append(Enemy(render, self.world, 7212.075, 715.181, -1, "SecurityGuard"))
-        # self.enemies.append(Enemy(render, self.world, 212.038, 724.852, -1, "SecurityGuard"))
-        self.enemies.append(Enemy(render, self.world, 203.831, 724.983, -1, "SecurityGuard"))
-        self.enemies.append(Enemy(render, self.world, 202.971, 734.249, -1, "SecurityGuard"))
-        self.enemies.append(Enemy(render, self.world, 6211.922, 735.278, -1, "SecurityGuard"))
-        self.enemies.append(Enemy(render, self.world, 191.579, 727.393, -1, "SecurityGuard"))
-        # self.enemies.append(Enemy(render, self.world, 190.676, 735.513, -1, "SecurityGuard"))
-        # self.enemies.append(Enemy(render, self.world, 180.853, 735.058, -1, "SecurityGuard"))
-        # self.enemies.append(Enemy(render, self.world, 6181.708, 726.1, -1, "SecurityGuard"))
-        self.enemies.append(Enemy(render, self.world, 187.881, 717.305, -1, "SecurityGuard"))
-        self.enemies.append(Enemy(render, self.world, 177.801, 714.21, -1, "SecurityGuard"))
-        self.enemies.append(Enemy(render, self.world, 180.247, 706.548, -1, "SecurityGuard"))
-
-        # Level 2 Enemies (Mixed bag)
-        self.enemies.append(Enemy(render, self.world, -220.549, 427.425, -1, "Scientist"))
-        # self.enemies.append(Enemy(render, self.world, -223.242, 415.591, -1, "Brawler"))
-        # self.enemies.append(Enemy(render, self.world, -211.013, 417.047, -1, "Voltage"))
-        self.enemies.append(Enemy(render, self.world, -244.055, 304.031, -1, "Cinder"))
-        # self.enemies.append(Enemy(render, self.world, -250.473, 294.736, -1, "Shield"))
-        # self.enemies.append(Enemy(render, self.world, -247.543, 285.703, -1, "Wraith"))
-        self.enemies.append(Enemy(render, self.world, -234.8, 285.066, -1, "Scientist"))
-        self.enemies.append(Enemy(render, self.world, -214.313, 77.9221, -1, "Brawler"))
-        self.enemies.append(Enemy(render, self.world, -210.797, 63.8862, -1, "Voltage"))
-        self.enemies.append(Enemy(render, self.world, -206.397, 68.8532, -1, "Cinder"))
-        self.enemies.append(Enemy(render, self.world, -212.291, 19.0834, -1, "Bricker"))
-        # self.enemies.append(Enemy(render, self.world, -237.824, -162.731, -1, "Wraith"))
-        self.enemies.append(Enemy(render, self.world, -226.271, -170.715, -1, "Scientist"))
-        self.enemies.append(Enemy(render, self.world, -231.582, -171.925, -1, "Brawler"))
-        self.enemies.append(Enemy(render, self.world, -236.969, -178.02, -1, "Shield"))
-
-
-
+        if self.onLevelTwo:
+            # Level 2 Enemies (Mixed bag)
+            self.enemies.append(Enemy(render, self.world, -220.549, 427.425, -1, "Scientist"))
+            # self.enemies.append(Enemy(render, self.world, -223.242, 415.591, -1, "Brawler"))
+            # self.enemies.append(Enemy(render, self.world, -211.013, 417.047, -1, "Voltage"))
+            self.enemies.append(Enemy(render, self.world, -244.055, 304.031, -1, "Cinder"))
+            # self.enemies.append(Enemy(render, self.world, -250.473, 294.736, -1, "Shield"))
+            # self.enemies.append(Enemy(render, self.world, -247.543, 285.703, -1, "Wraith"))
+            self.enemies.append(Enemy(render, self.world, -234.8, 285.066, -1, "Scientist"))
+            self.enemies.append(Enemy(render, self.world, -214.313, 77.9221, -1, "Brawler"))
+            self.enemies.append(Enemy(render, self.world, -210.797, 63.8862, -1, "Voltage"))
+            self.enemies.append(Enemy(render, self.world, -206.397, 68.8532, -1, "Cinder"))
+            self.enemies.append(Enemy(render, self.world, -212.291, 19.0834, -1, "Bricker"))
+            # self.enemies.append(Enemy(render, self.world, -237.824, -162.731, -1, "Wraith"))
+            self.enemies.append(Enemy(render, self.world, -226.271, -170.715, -1, "Scientist"))
+            self.enemies.append(Enemy(render, self.world, -231.582, -171.925, -1, "Brawler"))
+            self.enemies.append(Enemy(render, self.world, -236.969, -178.02, -1, "Shield"))
+        else:
+            # Level 1 Security guards
+            self.enemies.append(Enemy(render, self.world, 65, 68, -1, "SecurityGuard"))
+            self.enemies.append(Enemy(render, self.world, 69, 64, -1, "SecurityGuard"))
+            self.enemies.append(Enemy(render, self.world, 78, 72, -1, "SecurityGuard"))
+            self.enemies.append(Enemy(render, self.world, 204.968, 212.61, -1, "SecurityGuard"))
+            # self.enemies.append(Enemy(render, self.world, 209.655, 203.636, -1, "SecurityGuard"))
+            # self.enemies.append(Enemy(render, self.world, 217.109, 212.297, -1, "SecurityGuard"))
+            # self.enemies.append(Enemy(render, self.world, 223.065, 220.857, -1, "SecurityGuard"))
+            # self.enemies.append(Enemy(render, self.world, 6235.36, 222.674, -1, "SecurityGuard"))
+            self.enemies.append(Enemy(render, self.world, 7236.321, 231.365, -1, "SecurityGuard"))
+            self.enemies.append(Enemy(render, self.world, 332.143, 455.849, -1, "SecurityGuard"))
+            self.enemies.append(Enemy(render, self.world, 323.669, 460.24, -1, "SecurityGuard"))
+            self.enemies.append(Enemy(render, self.world, 329.634, 468.654, -1, "SecurityGuard"))
+            # self.enemies.append(Enemy(render, self.world, 200.354, 710.706, -1, "SecurityGuard"))
+            # self.enemies.append(Enemy(render, self.world, 209.07, 704.83, -1, "SecurityGuard"))
+            self.enemies.append(Enemy(render, self.world, 7212.075, 715.181, -1, "SecurityGuard"))
+            self.enemies.append(Enemy(render, self.world, 212.038, 724.852, -1, "SecurityGuard"))
+            # self.enemies.append(Enemy(render, self.world, 203.831, 724.983, -1, "SecurityGuard"))
+            # self.enemies.append(Enemy(render, self.world, 202.971, 734.249, -1, "SecurityGuard"))
+            # self.enemies.append(Enemy(render, self.world, 6211.922, 735.278, -1, "SecurityGuard"))
+            self.enemies.append(Enemy(render, self.world, 191.579, 727.393, -1, "SecurityGuard"))
+            # self.enemies.append(Enemy(render, self.world, 190.676, 735.513, -1, "SecurityGuard"))
+            # self.enemies.append(Enemy(render, self.world, 180.853, 735.058, -1, "SecurityGuard"))
+            self.enemies.append(Enemy(render, self.world, 6181.708, 726.1, -1, "SecurityGuard"))
+            # self.enemies.append(Enemy(render, self.world, 187.881, 717.305, -1, "SecurityGuard"))
+            self.enemies.append(Enemy(render, self.world, 177.801, 714.21, -1, "SecurityGuard"))
+            self.enemies.append(Enemy(render, self.world, 180.247, 706.548, -1, "SecurityGuard"))
 
     def createSetOfLetters(self):
         self.letterB = '../models/letters/letter_b.egg'
@@ -520,8 +498,6 @@ class level_1(ShowBase):
         self.player.createPlayer(render, self.world)
 
         # Enemies
-        if self.enemies > 0:
-            del self.enemies[:]
         self.createEnemies()
 
         # Music
