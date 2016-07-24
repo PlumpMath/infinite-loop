@@ -86,6 +86,10 @@ class Player(DirectObject):
 
     def doJump(self):
         self.isJumping = True
+
+        # self.jump = loader.loadSfx("../sounds/jump.mp3")
+        # self.jump.setVolume(0.8)
+
         self.character.setMaxJumpHeight(18.0)
         self.character.setJumpSpeed(8.0)
         self.character.doJump()

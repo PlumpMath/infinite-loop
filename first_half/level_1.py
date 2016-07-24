@@ -4,17 +4,14 @@ from direct.showbase.ShowBase import ShowBase
 from direct.showbase.InputStateGlobal import inputState
 from direct.gui.DirectGui import *
 from direct.gui.OnscreenImage import OnscreenImage
-from panda3d.core import TransparencyAttrib
-from panda3d.core import Mat4
+
 from panda3d.core import AmbientLight
 from panda3d.core import DirectionalLight
 from panda3d.core import Vec3
 from panda3d.core import Vec4
 from panda3d.core import PandaNode,NodePath,TextNode
 from panda3d.core import Fog
-from panda3d.core import Point3
-from panda3d.core import BitMask32
-from direct.interval.IntervalGlobal import *
+
 
 
 
@@ -22,10 +19,6 @@ from enemy import Enemy
 from player import Player
 from movingPlatform import MovingPlatform
 
-from panda3d.bullet import BulletWorld
-from panda3d.bullet import BulletRigidBodyNode
-from panda3d.bullet import BulletTriangleMesh
-from panda3d.bullet import BulletTriangleMeshShape
 from panda3d.bullet import *
 from panda3d.bullet import BulletDebugNode
 
@@ -78,6 +71,7 @@ class level_1(ShowBase):
         self.start = True
         self.worldCondition = False
         self.onLevelTwo = False
+        self.menuOn = True
 
         # Number of collectibles
         self.numObjects = addNumObj(
@@ -132,6 +126,7 @@ class level_1(ShowBase):
     def doRestart(self):
 
         self.worldCondition = True
+        self.menuOn = False
 
         # Hide menu
         self.mainMenuBackground.hide()
@@ -142,9 +137,6 @@ class level_1(ShowBase):
         self.player.startPosLevel1()
         self.bar["value"] = 100
         self.health = 100
-
-        # Set enemies back to starting state
-        self.createEnemies()
 
         # Set collectibles back to starting state
         for l in self.letters:
@@ -177,6 +169,10 @@ class level_1(ShowBase):
     def doRestartLevel2(self):
         self.onLevelTwo = True
         self.doRestart()
+
+        # Create level 2 enemies only
+        self.enemies[:] = []
+        self.createEnemies()
 
         # Set skybox to level 2 skybox
         self.skybox.removeNode()
@@ -268,6 +264,7 @@ class level_1(ShowBase):
         for letter in self.letters:
             contactResult = self.world.contactTestPair(self.player.character, letter)
             if len(contactResult.getContacts()) > 0:
+                self.collect.play()
                 letter.removeAllChildren()
                 self.world.remove(letter)
                 self.letters.remove(letter)
@@ -315,13 +312,14 @@ class level_1(ShowBase):
                 enemy.badActorNP.stop()
                 enemy.badActorNP.loop("attack")
 
-            if enemyProximity < 2 and not self.player.actorNP.getAnimControl("damage").isPlaying():
+            if enemyProximity < 2 and not self.player.actorNP.getAnimControl("damage").isPlaying() and self.menuOn == False:
                 self.player.actorNP.play("damage")
+                self.damage.play()
                 self.isTakingDamage = True
 
             if self.player.character.isOnGround() and self.isTakingDamage:
                 if self.player.isNotWalking and not self.player.actorNP.getAnimControl("walk").isPlaying():
-                    self.player.actorNP.stop("damage")
+                    # self.player.actorNP.stop("damage")
                     self.player.actorNP.loop("walk")
                     self.player.isTakingDamage = False
 
@@ -331,10 +329,11 @@ class level_1(ShowBase):
 
     # When robot comes in contact with enemy, health is reduced
     def reduceHealth(self):
-        self.bar["value"] -= 0.1
+        self.bar["value"] -= 0.3
 
     # Build menu with background and buttons
     def buildMenu(self):
+        self.menuOn = True
         self.mainMenuBackground = OnscreenImage(image='../models/main-menu-background.png', pos=(0, 0, 0),
                                                 scale=(1.4, 1, 1))
 
@@ -350,10 +349,17 @@ class level_1(ShowBase):
 
     # Menus for losing conditions
     def updateWinLose(self, task):
-        if (self.bar["value"] < 1 or (len(self.letters) == 0 and len(self.collectedLetters) > 0))and self.worldCondition:
+        if self.bar["value"] < 1 and self.worldCondition:
             # Stop music and show menu
             self.worldCondition = False
             self.backgroundMusic.stop()
+            self.dead.play()
+            self.buildMenu()
+        if len(self.letters) == 0 and len(self.collectedLetters) > 0:
+            # Stop music and show menu
+            self.worldCondition = False
+            self.backgroundMusic.stop()
+            self.winner.play()
             self.buildMenu()
         return task.cont
 
@@ -366,32 +372,34 @@ class level_1(ShowBase):
 
     def createEnemies(self):
         if self.onLevelTwo:
+            print "on level 2"
             # Level 2 Enemies (Mixed bag)
             self.enemies.append(Enemy(render, self.world, -220.549, 427.425, -1, "Scientist"))
             # self.enemies.append(Enemy(render, self.world, -223.242, 415.591, -1, "Brawler"))
             # self.enemies.append(Enemy(render, self.world, -211.013, 417.047, -1, "Voltage"))
             self.enemies.append(Enemy(render, self.world, -244.055, 304.031, -1, "Cinder"))
-            # self.enemies.append(Enemy(render, self.world, -250.473, 294.736, -1, "Shield"))
+            self.enemies.append(Enemy(render, self.world, -250.473, 294.736, -1, "Shield"))
             # self.enemies.append(Enemy(render, self.world, -247.543, 285.703, -1, "Wraith"))
-            self.enemies.append(Enemy(render, self.world, -234.8, 285.066, -1, "Scientist"))
+            # self.enemies.append(Enemy(render, self.world, -234.8, 285.066, -1, "Scientist"))
             self.enemies.append(Enemy(render, self.world, -214.313, 77.9221, -1, "Brawler"))
             self.enemies.append(Enemy(render, self.world, -210.797, 63.8862, -1, "Voltage"))
-            self.enemies.append(Enemy(render, self.world, -206.397, 68.8532, -1, "Cinder"))
+            # self.enemies.append(Enemy(render, self.world, -206.397, 68.8532, -1, "Cinder"))
             self.enemies.append(Enemy(render, self.world, -212.291, 19.0834, -1, "Bricker"))
             # self.enemies.append(Enemy(render, self.world, -237.824, -162.731, -1, "Wraith"))
             self.enemies.append(Enemy(render, self.world, -226.271, -170.715, -1, "Scientist"))
             self.enemies.append(Enemy(render, self.world, -231.582, -171.925, -1, "Brawler"))
             self.enemies.append(Enemy(render, self.world, -236.969, -178.02, -1, "Shield"))
         else:
+            print "on level 1"
             # Level 1 Security guards
             self.enemies.append(Enemy(render, self.world, 65, 68, -1, "SecurityGuard"))
             self.enemies.append(Enemy(render, self.world, 69, 64, -1, "SecurityGuard"))
             self.enemies.append(Enemy(render, self.world, 78, 72, -1, "SecurityGuard"))
             self.enemies.append(Enemy(render, self.world, 204.968, 212.61, -1, "SecurityGuard"))
-            # self.enemies.append(Enemy(render, self.world, 209.655, 203.636, -1, "SecurityGuard"))
-            # self.enemies.append(Enemy(render, self.world, 217.109, 212.297, -1, "SecurityGuard"))
-            # self.enemies.append(Enemy(render, self.world, 223.065, 220.857, -1, "SecurityGuard"))
-            # self.enemies.append(Enemy(render, self.world, 6235.36, 222.674, -1, "SecurityGuard"))
+            self.enemies.append(Enemy(render, self.world, 209.655, 203.636, -1, "SecurityGuard"))
+            self.enemies.append(Enemy(render, self.world, 217.109, 212.297, -1, "SecurityGuard"))
+            self.enemies.append(Enemy(render, self.world, 223.065, 220.857, -1, "SecurityGuard"))
+            self.enemies.append(Enemy(render, self.world, 6235.36, 222.674, -1, "SecurityGuard"))
             self.enemies.append(Enemy(render, self.world, 7236.321, 231.365, -1, "SecurityGuard"))
             self.enemies.append(Enemy(render, self.world, 332.143, 455.849, -1, "SecurityGuard"))
             self.enemies.append(Enemy(render, self.world, 323.669, 460.24, -1, "SecurityGuard"))
@@ -404,10 +412,10 @@ class level_1(ShowBase):
             # self.enemies.append(Enemy(render, self.world, 202.971, 734.249, -1, "SecurityGuard"))
             # self.enemies.append(Enemy(render, self.world, 6211.922, 735.278, -1, "SecurityGuard"))
             self.enemies.append(Enemy(render, self.world, 191.579, 727.393, -1, "SecurityGuard"))
-            # self.enemies.append(Enemy(render, self.world, 190.676, 735.513, -1, "SecurityGuard"))
-            # self.enemies.append(Enemy(render, self.world, 180.853, 735.058, -1, "SecurityGuard"))
+            self.enemies.append(Enemy(render, self.world, 190.676, 735.513, -1, "SecurityGuard"))
+            self.enemies.append(Enemy(render, self.world, 180.853, 735.058, -1, "SecurityGuard"))
             self.enemies.append(Enemy(render, self.world, 6181.708, 726.1, -1, "SecurityGuard"))
-            # self.enemies.append(Enemy(render, self.world, 187.881, 717.305, -1, "SecurityGuard"))
+            self.enemies.append(Enemy(render, self.world, 187.881, 717.305, -1, "SecurityGuard"))
             self.enemies.append(Enemy(render, self.world, 177.801, 714.21, -1, "SecurityGuard"))
             self.enemies.append(Enemy(render, self.world, 180.247, 706.548, -1, "SecurityGuard"))
 
@@ -473,6 +481,7 @@ class level_1(ShowBase):
 
         # Start from beginning position if player falls off track
         if self.player.characterNP.getZ() < -10.0:
+            # self.falling.play()
             if self.onLevelTwo:
                 self.player.startPosLevel2()
             else:
@@ -486,7 +495,7 @@ class level_1(ShowBase):
     def setup(self):
 
         self.debugNP = self.render.attachNewNode(BulletDebugNode('Debug'))
-        self.debugNP.show()
+        self.debugNP.hide()
 
         # Physics World
         self.world = BulletWorld()
@@ -504,7 +513,18 @@ class level_1(ShowBase):
         self.backgroundMusic = loader.loadSfx('../sounds/elfman-piano-solo.ogg')
         self.backgroundMusic.setLoop(True)
         self.backgroundMusic.stop()
-        # backgroundMusic.setVolume(4.0)  # will need to lower this when I add sound effects
+        self.backgroundMusic.setVolume(0.9)  # lower this when I add sound effects
+
+        # Sound Effects
+        self.collect = base.loader.loadSfx("../sounds/collect-sound.wav")
+        self.collect.setVolume(1)
+        self.damage = base.loader.loadSfx("../sounds/damage.wav")
+        self.damage.setVolume(0.5)
+        self.winner = base.loader.loadSfx("../sounds/win.wav")
+        self.winner.setVolume(1)
+        self.dead = base.loader.loadSfx("../sounds/severe-damage.wav")
+        self.dead.setVolume(1)
+
 
         # Level 1 Skybox
         self.skybox = loader.loadModel('../models/skybox.egg')
