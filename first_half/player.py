@@ -32,7 +32,7 @@ class Player(DirectObject):
         omega = 0.0
 
         # Change speed of robot
-        if inputState.isSet('forward'): speed.setY(13.0)
+        if inputState.isSet('forward'): speed.setY(24.0)
         if inputState.isSet('reverse'): speed.setY(-4.0)
         if inputState.isSet('left'):    speed.setX(-3.0)
         if inputState.isSet('right'):   speed.setX(3.0)
